@@ -1,0 +1,6 @@
+schemaDistributionMechanism: "email"
+pollingInterval: "PT5M"
+maximumResponseSizeThreshold: 2048
+transitionPeriod: "P90D"
+notificationPeriod: "P30D"
+centralizedTestingEnvironment: false

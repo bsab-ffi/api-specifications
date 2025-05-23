@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Financial Flow Infrastructure Contract API 
+  version: 1.0.0
+  description: |
+    This API allows retrieval of the bilateral contract between the client (consumer, aka FFI requestor) and the server (provider, aka FFI respondent).
+tags:
+  - name: Contract
+    description: Manage contract.
+paths:
+  /v1/contract:
+    get:
+      summary: Get your contract.
+      description: This endpoint retrieves the bilateral contract between the client (consumer, aka FFI requestor) and the server (provider, aka FFI respondent).
+      tags:
+        - Contract
+      operationId: getContract
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK - API client authorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractPayload'
+              example:
+                contractId: "a6b4e9f3-8df3-4e02-ae3b-992f418e24f5"
+                createDate: "2025-07-01T12:00:00Z"
+                modifiedDate: "2025-10-10T11:00:00Z"
+                providerId: "bank-a.com"
+                consumerId: "bank-b.com"
+                technicalContact: "ffi-support@bank-a.com"
+                messageTypes:
+                  - messageType: "MessageType-1"
+                    businessContact: "mt1-support@bank-a.com"
+                    responseTime: "P2D"
+                    createDate: "2025-07-01T12:00:00Z"
+                    modifiedDate: "2025-10-10T11:00:00Z"
+                    schemaVersions:
+                      - 1
+                      - 2
+                  - messageType: "MessageType-2"
+                    businessContact: "mt2-support@bank-a.com"
+                    responseTime: "PT12H"
+                    createDate: "2025-08-01T12:00:00Z"
+                    modifiedDate: "2025-09-10T11:00:00Z"
+                    schemaVersions:
+                      - 5
+                      - 6
+                      - 7
+        401:
+          description: Unauthorized - the client request lacks valid authentication credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                errorCode: UNAUTHORIZED
+                message: Invalid or missing authentication token.    
+        403:
+          description: Forbidden - the server refuses to authorize the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                errorCode: FORBIDDEN
+                message: Access denied.
+        404:
+          description: Not Found - the requested bilateral contract was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                errorCode: CONTRACT_NOT_FOUND
+                message: No active bilateral contract found for the specified client.
+                details:
+                  reason: The contract may not exist, has expired, or is not yet active.
+components:
+  schemas:
+    ContractPayload:
+      type: object
+      required:
+        - contractId
+        - createDate
+        - modifiedDate
+        - consumerId
+        - providerId
+        - technicalContact
+        - messageTypes
+      properties:
+        contractId:
+          type: string
+          format: uuid
+          description: The identifier for the contract. Must be globally unique and compliant with RFC4122.
+        createDate:
+            type: string
+            format: date-time
+            description: The date and time when the contract becomes active and enforceable. Must be compliant with the date-time format defined in RFC 3339.
+        modifiedDate:
+            type: string
+            format: date-time
+            description: The date and time when the contract has been changed/updated. Must be compliant with the date-time format defined in RFC 3339.
+        providerId:
+          type: string
+          pattern: ^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$
+          description: The identity of the provider (aka FFI Respondent). This identifier must conform to the standards of the Domain Name System (DNS), specifically adhering to the conventions outlined in RFC 1035, to ensure it is a valid FFI entity identity.
+        consumerId:
+          type: string
+          pattern: ^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$
+          description: The identity of the consumer (aka FFI Requestor). This identifier must conform to the standards of the Domain Name System (DNS), specifically adhering to the conventions outlined in RFC 1035, to ensure it is a valid FFI entity identity.
+        technicalContact:
+          type: string
+          format: email
+          description: Email address for technical support.
+        messageTypes:
+          type: array
+          items:
+            type: object
+            required:
+              - messageType
+              - businessContact
+              - responseTime
+              - createDate
+              - modifiedDate
+              - schemaVersions
+            properties:
+              messageType:
+                type: string
+                description: Message type.
+              businessContact:
+                type: string
+                format: email
+                description: Email address for business support.
+              responseTime:
+                type: string
+                pattern: ^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$
+                description: |
+                  The maximum allowed response time for handling the associated message type, as defined in the bilateral contract.
+                  Must follow the ISO 8601 duration format (e.g., "P2D" for two days, "PT12H" for twelve hours).
+              createDate:
+                type: string
+                format: date-time
+                description: The date and time when the messageType became active. Must be compliant with the date-time format defined in RFC 3339.
+              modifiedDate:
+                type: string
+                format: date-time
+                description: The date and time when the messageType has been changed/updated typical a version change. Must be compliant with the date-time format defined in RFC 3339.
+              schemaVersions:
+                type: array
+                items:
+                  type: integer
+                  description: Numeric identifier of the schema version utilized for crafting and validating the content of the message.
+    ErrorResponse:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          type: string
+          description: A unique identifier for the error type (e.g., "UNAUTHORIZED", "FORBIDDEN", "CONTRACT_NOT_FOUND").
+        message:
+          type: string
+          description: A human-readable explanation of the error.
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional context-specific details about the error.
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: OAuth2 Bearer Token Authentication

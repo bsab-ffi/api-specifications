@@ -1,0 +1,392 @@
+openapi: 3.0.3
+info:
+  title: Financial Flow Infrastructure Core API
+  version: 3.2.0
+  description: The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
+tags:
+  - name: Requests
+    description: Manage requests.
+  - name: Responses
+    description: Manage responses.
+paths:
+  /v3/requests:
+    post:
+      summary: Create a request.
+      description: This endpoint allows users to create a new request in the Financial Flow Infrastructure Core API.
+      tags:
+        - Requests
+      operationId: postRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/messageTypeHeader'
+        - $ref: '#/components/parameters/messageTypeSchemaVersionHeader'
+      requestBody:
+        description: This endpoint allows users to create a new request or response in the Financial Flow Infrastructure Core API. The request body can contain either a request or response payload in JSON or XML format. Ensure the payload adheres to the schema and messageTypeSchemaVersion specified in the headers.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessagePayload'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/MessagePayload'
+      responses:
+        202:
+          description: Accepted - API client authorized and a new request was created for processing.
+          headers:
+            X-FFI-RequestId:
+              $ref: '#/components/headers/requestId'
+            X-FFI-CreateDateTime:
+              $ref: '#/components/headers/createDateTime'
+        400:
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        401:
+          description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+        403:
+          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /v3/requests/{requestId}:
+    delete:
+      summary: Delete (abort) a request.
+      description: This endpoint allows users to delete (abort) a specific request by its identifier.
+      tags:
+        - Requests
+      operationId: deleteRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/requestIdPath'
+      responses:
+        204:
+          description: No Content - Request deleted (aborted) successfully.
+        400:
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        401:
+          description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+        403:
+          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        404:
+          description: Not Found - indicates that the server did not find the referenced request.
+        405:
+          description: Method Not Allowed - indicates that the message type does not allow to be aborted.
+  /v3/responses:
+    get:
+      summary: Get all available responses.
+      description: This endpoint provides a list of all processed responses that are available for retrieval.
+      tags:
+        - Responses
+      operationId: getResponseList
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: OK - API client authorized, and request is validated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageMetadata'
+        400:
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        401:
+          description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+        403:
+          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        429:
+          description: Too Many Requests - Client has exceeded the allowed polling frequency.
+          headers:
+            Retry-After:
+              description: The number of seconds the client must wait before making another request.
+              schema:
+                type: integer
+  /v3/responses/{responseId}:
+    get:
+      summary: Get a response.
+      description: This endpoint retrieves a response associated with a given request identifier. The response might be chunked for large payloads.
+      tags:
+        - Responses
+      operationId: getResponse
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/responseIdPath'
+        - name: Accept-Encoding
+          in: header
+          description: Indicates that the client accepts gzip-encoded responses in case the payload exceeds 2kB.
+          required: false
+          schema:
+            type: string
+            enum:
+              - gzip
+      responses:
+        200:
+          description: OK - API client authorized, and request is validated.
+          headers:
+            X-FFI-ResponseId:
+              $ref: '#/components/headers/responseId'
+            X-FFI-MessageType:
+              $ref: '#/components/headers/messageType'
+            X-FFI-ProcessingResult:
+              $ref: '#/components/headers/processingResult'
+            X-FFI-MessageTypeSchemaVersion:
+              $ref: '#/components/headers/messageTypeSchemaVersion'
+            X-FFI-CreateDateTime:
+              $ref: '#/components/headers/createDateTime'
+            Content-Type:
+              description: The content type of the response.
+              schema:
+                type: string
+                enum:
+                  - application/json
+                  - application/xml
+            Content-Encoding:
+              description: The content encoding of the response.
+              schema:
+                type: string
+                enum:
+                  - gzip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePayload'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/MessagePayload'
+        400:
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        401:
+          description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+        403:
+          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        404:
+          description: Not Found - indicates that the server did not find the referenced response message.
+        406:
+          description: Not Acceptable  - indicates that the client's Accept-header correspond to a none-existing content-type for the response.
+  /v3/responses/{responseId}/acknowledge:
+    post:
+      summary: Acknowledge a response.
+      description: This endpoint allows users to acknowledge the receipt of a response.
+      tags:
+        - Responses
+      operationId: postResponseAcknowledge
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/responseIdPath'
+        - $ref: '#/components/parameters/acknowledgeStatusHeader'
+      responses:
+        200:
+          description: OK - API client authorized, and request is validated.
+        400:
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        401:
+          description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
+        403:
+          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+        404:
+          description: Not Found - indicates that the server did not find the referenced response.
+components:
+  headers:
+    responseId:
+      description: The identifier of the response.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageIdentity'
+    requestId:
+      description: Identifier of the request.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageIdentity'
+    messageType:
+      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageType'
+    processingResult:
+      description: A processingResult corresponds to the detailed schema used to create and validate the content of an FFI message.
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProcessingResult'
+    messageTypeSchemaVersion:
+      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageTypeSchemaVersion'
+    createDateTime:
+      description: MessageTimestamp for when the FFI message was created.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageTimestamp'
+  parameters:
+    responseIdPath:
+      name: responseId
+      description: The identifier of the FFI message.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageIdentity'
+      example: 9978e48c-736a-4a81-b799-26b08a5b8426
+    requestIdPath:
+      name: requestId
+      description: Identifier of the original request.
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageIdentity'
+      example: cb4c479f-6161-4ade-b51b-e78428229dad
+    messageTypeHeader:
+      name: X-FFI-MessageType
+      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageType'
+      example: TransactionInquiry
+    messageTypeSchemaVersionHeader:
+      name: X-FFI-MessageTypeSchemaVersion
+      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/MessageTypeSchemaVersion'
+      example: 1
+    acknowledgeStatusHeader:
+      name: X-FFI-AcknowledgeStatus
+      description: Status indicating the acknowledgment of a response.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/AcknowledgeStatus'
+      example: SUCCEEDED
+  schemas:
+    MessagePayload:
+      type: string
+    MessageMetadata:
+      type: array
+      items:
+        allOf:
+          - $ref: '#/components/schemas/MetadataStruct'
+        example:
+          requestId: cb4c479f-6161-4ade-b51b-e78428229dad
+          responseId: 9978e48c-736a-4a81-b799-26b08a5b8426
+          createDateTime: 2024-04-30T12:34:56Z
+          messageType: TransactionInquiry
+          processingResult: SUCCESS
+          messageTypeSchemaVersion: 1
+    MetadataStruct:
+      type: object
+      properties:
+        requestId:
+          $ref: '#/components/schemas/MessageIdentity'
+        responseId:
+          $ref: '#/components/schemas/MessageIdentity'
+        messageType:
+          $ref: '#/components/schemas/MessageType'
+        processingResult:
+          $ref: '#/components/schemas/ProcessingResult'
+        messageTypeSchemaVersion:
+          $ref: '#/components/schemas/MessageTypeSchemaVersion'
+        createDateTime:
+          $ref: '#/components/schemas/MessageTimestamp'
+    MessageIdentity:
+      type: string
+      format: uuid
+      description: The identifier of the FFI message. Must be globally unique and compliant with RFC4122.
+    MessageType:
+      type: string
+      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
+    ProcessingResult:
+      description: Result indicating the outcome of processing the request.
+      type: string
+      enum:
+        - SUCCESS
+        - ERROR
+    MessageTypeSchemaVersion:
+      type: string
+      pattern: ^\d+$
+      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+    MessageTimestamp:
+      type: string
+      format: date-time
+      description: >
+        Must follow RFC 3339 (a strict subset of ISO 8601).
+        The format must be 'YYYY-MM-DDTHH:mm:ssZ' or 'YYYY-MM-DDTHH:mm:ss.SSSZ', where 'Z' indicates UTC time.
+        Fractional seconds (milliseconds) are optional but, if included, should have up to three decimal places.
+    AcknowledgeStatus:
+      type: string
+      enum:
+        - SUCCEEDED
+        - FAILED
+      description: Status indicating the acknowledgment of a response.
+    ApiError:
+      type: object
+      description: A common general API-Error structure typical used for Bad Request Errors - based on RFC 9457 - https://www.rfc-editor.org/rfc/rfc9457.
+      properties:
+        instance:
+          type: string
+          format: uri-reference
+          description: A URI reference that identifies the specific occurrence of the problem.
+          example: /v3/requests
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+          example: Bad request - Service validation error
+        status:
+          type: integer
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 100
+          maximum: 599
+          example: 400
+        detail:
+          type: string
+          example: A human-readable explanation specific to this occurrence of the problem.
+        type:
+          type: string
+          format: uri-reference
+          description: A unique URI reference that identifies the problem type.
+          example: about:blank
+      required:
+        - instance
+        - title
+        - status
+        - detail
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: OAuth2 Bearer Token Authentication

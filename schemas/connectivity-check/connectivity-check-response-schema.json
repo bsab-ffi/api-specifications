@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bsab.se/ffi/schema/connectivity-check-response/1",
+  "title": "FFI Connectivity Check Response",
+  "description": "Schema defining the response format for verifying connectivity of an FFI client in production.",
+  "type": "object",
+  "properties": {
+    "connectivityCheckReference": {
+      "type": "string",
+      "title": "Connectivity Check Reference",
+      "description": "A unique reference identifier for the connectivity check request, ensuring traceability between request and response.",
+      "maxLength": 40,
+      "examples": [
+        "BankA-TEST-1"
+      ]
+    },
+    "connectivityResponseText": {
+      "type": "string",
+      "title": "Connectivity Response Text",
+      "description": "Optional response message providing additional details about the connectivity verification result.",
+      "maxLength": 128,
+      "examples": [
+        "Connectivity verified"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "connectivityCheckReference"
+  ],
+  "examples": [
+    {
+      "connectivityCheckReference": "BankA-TEST-1",
+      "connectivityResponseText": "Bank-B Connectivity verified"
+    }
+  ]
+}

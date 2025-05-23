@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bsab.se/ffi/schema/connectivity-check-request/1",
+  "title": "FFI Connectivity Check Request",
+  "description": "Schema defining the request format for initiating a connectivity check for an FFI client in production.",
+  "type": "object",
+  "properties": {
+    "connectivityCheckReference": {
+      "type": "string",
+      "title": "Connectivity Check Reference",
+      "description": "A unique reference identifier for the connectivity check request, ensuring traceability between request and response.",
+      "maxLength": 40,
+      "examples": [
+        "BankA-TEST-1"
+      ]
+    },
+    "connectivityRequestText": {
+      "type": "string",
+      "title": "Connectivity Request Text",
+      "description": "Optional request message providing additional details about the connectivity verification process.",
+      "maxLength": 128,
+      "examples": [
+        "Initiating connectivity check towards Bank B"
+      ]
+    },
+    "connectivityCheckTimestamp": {
+      "type": "string",
+      "title": "Connectivity Check Timestamp",
+      "description": "The timestamp when the connectivity check request was initiated, in ISO 8601 format.",
+      "format": "date-time",
+      "examples": [
+        "2025-02-18T14:30:00Z"
+      ]
+    },
+    "connectivityResponseType": {
+      "title": "Connectivity Response Type",
+      "description": "Optionally, used to control the Connectivity Response Type. Is by default SUCCESS. If set to ERROR, the receiver should respond with an error response message according to the error schema.",
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "ERROR"
+      ],
+      "default": "SUCCESS"
+    }
+  },
+  "required": [
+    "connectivityCheckReference",
+    "connectivityCheckTimestamp"
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "connectivityCheckReference": "BankA-TEST-2",
+      "connectivityRequestText": "Initiating connectivity check towards Bank B",
+      "connectivityCheckTimestamp": "2025-02-18T14:30:00Z"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bsab.se/ffi/schema/connectivity-check-error/1",
+  "title": "FFI Connectivity Check Error Response",
+  "description": "Schema defining the error response format for connectivity check requests in the FFI network.",
+  "type": "object",
+  "required": [
+    "codes"
+  ],
+  "properties": {
+    "codes": {
+      "title": "Connectivity Error Codes",
+      "description": "Array of error codes indicating why the connectivity check request failed.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "title": "Connectivity Error Code",
+        "description": "Error code representing a simulated failure condition in the connectivity check.",
+        "type": "string",
+        "enum": [
+          "TEST_ERROR_1",
+          "TEST_ERROR_2"
+        ]
+      }
+    }
+  }
+}
