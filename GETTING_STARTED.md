@@ -55,14 +55,16 @@ Each federation or provider is responsible for exposing the correct version(s), 
 
 ## Required Conventions
 
-| Area              | Convention |
-|-------------------|------------|
-| Security & Auth   | [handling-api-security.md](./conventions/handling-api-security.md) |
-| Schema validation | [handling-schema-validation.md](./conventions/handling-schema-validation.md) |
-| Versioning rules  | [handling-parallel-major-versions.md](./conventions/handling-parallel-major-versions.md) |
-| Polling & retry   | [handling-response-polling.md](./conventions/handling-response-polling.md) |
-| Compression       | [handling-compression-and-large-responses.md](./conventions/handling-compression-and-large-responses.md) |
-| Connectivity check| [handling-connectivity-check.md](./conventions/handling-connectivity-check.md) |
+| Area                | Convention |
+|---------------------|------------|
+| Security & Auth     | [handling-api-security.md](./conventions/handling-api-security.md) |
+| Bilateral contracts | [handling-bilateral-contracts.md](./conventions/handling-bilateral-contracts.md) |
+| Message exchange    | [handling-timestamps-and-lifecycle-events.md](./conventions/handling-timestamps-and-lifecycle-events.md) |
+| Schema validation   | [handling-schema-validation.md](./conventions/handling-schema-validation.md) |
+| Versioning rules    | [handling-parallel-major-versions.md](./conventions/handling-parallel-major-versions.md) |
+| Polling & retry     | [handling-response-polling.md](./conventions/handling-response-polling.md) |
+| Compression         | [handling-compression-and-large-responses.md](./conventions/handling-compression-and-large-responses.md) |
+| Connectivity check. | [handling-connectivity-check.md](./conventions/handling-connectivity-check.md) |
 
 ---
 
@@ -140,6 +142,8 @@ sequenceDiagram
 - Header: `X-FFI-AcknowledgeStatus: SUCCEEDED | FAILED`  
 - Auth: OAuth2 access token   
 - Marks message and request as completed and no longer retrievable
+
+📘 See: [Timestamps and Lifecycle Events Convention](./conventions/handling-timestamps-and-lifecycle-events.md)
 
 ---
 

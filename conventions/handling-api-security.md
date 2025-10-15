@@ -16,7 +16,6 @@ The FFI network consists of the following key components:
 
 ### 1. Client Authentication and Authorization
 
-
 **Required**
 
 - FFI Servers must rely on trusted and pre-registered X.509 TLS Client Certificates for client authentication.
@@ -24,6 +23,10 @@ The FFI network consists of the following key components:
 - FFI Servers must technically bind the client certificate to the OAuth client registration.
 - Client authorization must be performed using OAuth 2.0 Client Credentials Flow with Mutual TLS Authentication ([RFC 8705](https://www.rfc-editor.org/rfc/rfc8705.html)) or Private Key JWT ([RFC 7523](https://www.rfc-editor.org/rfc/rfc7523.html)).
 - The scope parameter is required in access token requests. The value must be one or more of the following: `ffi-core`, `ffi-contract`, and `ffi-notification`. Enforcement of scope values per API is optional and determined by each FFI Server implementation.
+- Each FFI Server operates its own OAuth 2.0 Authorization Server (AS) and exposes its own token endpoint.
+- FFI Clients must obtain access tokens directly from the Authorization Server of the FFI Server they intend to access.
+- FFI Servers only accept access tokens issued by their own Authorization Server. There is no centralized Authorization Server or token federation within the FFI network.
+- Each FFI Server is responsible for managing its AS, including client registration, token issuance, expiration, and revocation, and must provide documentation of its token endpoint and requirements during client onboarding.
 
 **Recommended / Optional**
 
@@ -49,4 +52,3 @@ The FFI network consists of the following key components:
 
 - Network Access Control Lists (ACLs) (IP whitelisting) may be used to restrict which clients can connect to FFI endpoints, provided this is supported by the client.  
 - ACLs must not be used as a primary authentication mechanism, as they are not a secure method of verifying client identity.  
-

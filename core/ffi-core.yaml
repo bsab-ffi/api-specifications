@@ -1,8 +1,15 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Core API
-  version: 3.2.0
-  description: The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
+  version: 3.3.0
+  description: |
+    The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
+
+    Glossary of Terms:
+    
+    - **FFI Message**: A structured unit of communication composed of protocol-level headers and a payload (body). Both requests and responses are considered FFI messages. The term is used to describe the full message envelope as it is transmitted within the infrastructure.
+    
+    Additional terms used throughout the specification are defined contextually where appropriate.
 tags:
   - name: Requests
     description: Manage requests.
@@ -22,7 +29,10 @@ paths:
         - $ref: '#/components/parameters/messageTypeHeader'
         - $ref: '#/components/parameters/messageTypeSchemaVersionHeader'
       requestBody:
-        description: This endpoint allows users to create a new request or response in the Financial Flow Infrastructure Core API. The request body can contain either a request or response payload in JSON or XML format. Ensure the payload adheres to the schema and messageTypeSchemaVersion specified in the headers.
+        description: >
+          Contains the request payload to be submitted to the Financial Flow Infrastructure Core API.
+          The payload may be provided in either JSON or XML format and must conform to the schema
+          defined by the messageType and messageTypeSchemaVersion headers.
         required: true
         content:
           application/json:
@@ -125,7 +135,7 @@ paths:
   /v3/responses/{responseId}:
     get:
       summary: Get a response.
-      description: This endpoint retrieves a response associated with a given request identifier. The response might be chunked for large payloads.
+      description: This endpoint retrieves a response associated with a given response identifier. The response might be compressed for large payloads.
       tags:
         - Responses
       operationId: getResponse
@@ -218,6 +228,10 @@ paths:
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
         403:
           description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         404:
           description: Not Found - indicates that the server did not find the referenced response.
 components:
@@ -228,27 +242,27 @@ components:
       schema:
         $ref: '#/components/schemas/MessageIdentity'
     requestId:
-      description: Identifier of the request.
+      description: The identifier of the request.
       required: true
       schema:
         $ref: '#/components/schemas/MessageIdentity'
     messageType:
-      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message.
+      description: The message type corresponds to the specification and schema used to create and validate the content of a FFI message.
       required: true
       schema:
         $ref: '#/components/schemas/MessageType'
     processingResult:
-      description: A processingResult corresponds to the detailed schema used to create and validate the content of an FFI message.
+      description: The processing result corresponds to the detailed schema used to create and validate the content of an FFI message.
       required: true
       schema:
         $ref: '#/components/schemas/ProcessingResult'
     messageTypeSchemaVersion:
-      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
       required: true
       schema:
         $ref: '#/components/schemas/MessageTypeSchemaVersion'
     createDateTime:
-      description: MessageTimestamp for when the FFI message was created.
+      description: The timestamp indicating when the FFI message was created.
       required: true
       schema:
         $ref: '#/components/schemas/MessageTimestamp'
@@ -263,7 +277,7 @@ components:
       example: 9978e48c-736a-4a81-b799-26b08a5b8426
     requestIdPath:
       name: requestId
-      description: Identifier of the original request.
+      description: The identifier of the original request.
       in: path
       required: true
       schema:
@@ -271,7 +285,7 @@ components:
       example: cb4c479f-6161-4ade-b51b-e78428229dad
     messageTypeHeader:
       name: X-FFI-MessageType
-      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message.
+      description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message.
       in: header
       required: true
       schema:
@@ -279,7 +293,7 @@ components:
       example: TransactionInquiry
     messageTypeSchemaVersionHeader:
       name: X-FFI-MessageTypeSchemaVersion
-      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
       in: header
       required: true
       schema:
@@ -287,7 +301,7 @@ components:
       example: 1
     acknowledgeStatusHeader:
       name: X-FFI-AcknowledgeStatus
-      description: Status indicating the acknowledgment of a response.
+      description: The status indicating the acknowledgment of the response.
       in: header
       required: true
       schema:
@@ -296,8 +310,10 @@ components:
   schemas:
     MessagePayload:
       type: string
+      description: The serialized payload of the FFI message.
     MessageMetadata:
       type: array
+      description: The collection of metadata associated with the FFI message, including identifiers, timestamps, and processing result.
       items:
         allOf:
           - $ref: '#/components/schemas/MetadataStruct'
@@ -310,6 +326,7 @@ components:
           messageTypeSchemaVersion: 1
     MetadataStruct:
       type: object
+      description: The base object for storing FFI message metadata attributes.
       properties:
         requestId:
           $ref: '#/components/schemas/MessageIdentity'
@@ -329,9 +346,9 @@ components:
       description: The identifier of the FFI message. Must be globally unique and compliant with RFC4122.
     MessageType:
       type: string
-      description: A messageType corresponds to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
+      description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
     ProcessingResult:
-      description: Result indicating the outcome of processing the request.
+      description: The result indicating the outcome of processing the request.
       type: string
       enum:
         - SUCCESS
@@ -339,32 +356,32 @@ components:
     MessageTypeSchemaVersion:
       type: string
       pattern: ^\d+$
-      description: Identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
     MessageTimestamp:
       type: string
       format: date-time
       description: >
-        Must follow RFC 3339 (a strict subset of ISO 8601).
-        The format must be 'YYYY-MM-DDTHH:mm:ssZ' or 'YYYY-MM-DDTHH:mm:ss.SSSZ', where 'Z' indicates UTC time.
-        Fractional seconds (milliseconds) are optional but, if included, should have up to three decimal places.
+          The timestamp representing when the FFI message was created. Must follow RFC 3339, a strict subset of ISO 8601.
+          The format must be 'YYYY-MM-DDTHH:mm:ssZ' or 'YYYY-MM-DDTHH:mm:ss.SSSZ', where 'Z' indicates UTC time.
+          Fractional seconds (milliseconds) are optional but, if included, must have up to three decimal places.
     AcknowledgeStatus:
       type: string
       enum:
         - SUCCEEDED
         - FAILED
-      description: Status indicating the acknowledgment of a response.
+      description: The status indicating the acknowledgment of the response.
     ApiError:
       type: object
-      description: A common general API-Error structure typical used for Bad Request Errors - based on RFC 9457 - https://www.rfc-editor.org/rfc/rfc9457.
+      description: The general API error structure, commonly used for bad request errors. Based on RFC 9457.
       properties:
         instance:
           type: string
           format: uri-reference
-          description: A URI reference that identifies the specific occurrence of the problem.
+          description: The URI reference that identifies the specific occurrence of the problem.
           example: /v3/requests
         title:
           type: string
-          description: A short, human-readable summary of the problem type.
+          description: The short, human-readable summary of the problem type.
           example: Bad request - Service validation error
         status:
           type: integer
@@ -374,11 +391,12 @@ components:
           example: 400
         detail:
           type: string
+          description: The human-readable explanation specific to this occurrence of the problem.
           example: A human-readable explanation specific to this occurrence of the problem.
         type:
           type: string
           format: uri-reference
-          description: A unique URI reference that identifies the problem type.
+          description: The unique URI reference that identifies the problem type.
           example: about:blank
       required:
         - instance
@@ -389,4 +407,4 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-      description: OAuth2 Bearer Token Authentication
+      description: The OAuth2 Bearer Token Authentication

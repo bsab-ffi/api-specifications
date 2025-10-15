@@ -21,7 +21,13 @@ By following this section of the General FFI API Conventions, we ensure that all
   - **Server Side:**
     - Validate received requests before processing.
     - Validate responses before publishing them.
-- Validation errors **MUST** result in an appropriate API error response, with details specifying the validation failure.
+- Validation errors **MUST** result in an appropriate API error response, with details specifying the validation failure, **where synchronous validation is performed (e.g., POST /requests)**.
+- If a client detects a validation error in a **polled response** (e.g., via GET /responses):
+  - The client **MUST** respond with:
+    ```
+    X-FFI-AcknowledgeStatus: FAILED
+    ```
+  - Further handling of such cases is part of **operational processes** and not handled via API error responses.
 - Versioning of schemas must be respected, ensuring that the **MessageTypeSchemaVersion** is correctly referenced in API interactions.
 - All communication based on a request message **MUST** be validated against the schema version indicated in the Message Type Schema Version header of the original request. This applies to both the request itself and any related responses or error messages.
 
@@ -33,7 +39,7 @@ By following this section of the General FFI API Conventions, we ensure that all
 
 ## Enforcement and Compliance
 
-- API endpoints **MUST** reject messages that do not conform to the agreed schema with an appropriate error response.
+- API endpoints **MUST** reject messages that do not conform to the agreed schema with an appropriate error response (where synchronous validation applies).
 - Failure to adhere to schema validation rules may trigger an **incident management process**.
 - All entities **SHOULD** implement automated schema validation as part of their system integration tests.
 
