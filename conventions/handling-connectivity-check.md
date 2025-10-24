@@ -10,7 +10,7 @@ This message-type should all implementations of the FFI-api support for all FFI-
 ## ConnectivityCheck UseCases/Scenarios and its Benefits:
 - Verify a newly onboarded FFI-client that authentication and authorization is working incl. the certificate, mTLS, oauth, message and version authorization etc
 - May  be used for internally trigger a connectivity check to see that the FFI-server orchestrator is up and working
-- May be used for external FFI parts to verify the FFI-server is alive i.e. up and working for a seleected FII-server
+- May be used for external FFI parts to verify the FFI-server is alive i.e. up and working for a selected FFI-server
 - When a new version of the FFI-core API is implemented, it is possible to test that both the new and current APIs is working as intended
 - Verify full connectivity after a certificate renewal has been done
 

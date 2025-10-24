@@ -7,7 +7,7 @@ By following this section of the General FFI API Conventions, we ensure that all
 - The purpose of this section is to ensure that all participants in all FFI federations can handle new versions of the API in an efficient and predictable manner.
 - This section applies to all participating entities (banks, authorities, etc.) connected to the FFI network.
 - Each major version of the API should be reflected in the URLs to clearly distinguish between different versions (e.g., `/v1/`, `/v2/`, etc.).
-- Certain parameters, such as the **transition period** and **notification period**, are **federation-specific values** and are referenced internally in this document (see [Federation-Specific Parameters](#federation-specific-parameters)).
+- Certain parameters, such as the **transition period** is **federation-specific values** and is referenced internally in this document (see [Federation-Specific Parameters](#federation-specific-parameters)).
 
 ## Maximum Number of Supported Parallel Versions
 
@@ -29,7 +29,6 @@ By following this section of the General FFI API Conventions, we ensure that all
 
 ## Documentation and Communication
 
-- Prior to the planned release of a new major version, all participants must be notified at least **[Notification Period]** in advance (see [Federation-Specific Parameters](#federation-specific-parameters)).
 - Any changes to the API must be documented and made available to all relevant parties through:
   - Version-specific documentation (release notes).
   - Migration guides to facilitate the transition to new versions.
@@ -56,7 +55,6 @@ By following this section of the General FFI API Conventions, we ensure that all
 Certain parameters in this document are defined at the **federation level** and must be specified in the **FFI Federation Configuration Document**. These parameters include:
 
 - **Transition Period:** The duration during which the previous major version remains supported after a new major version is released.
-- **Notification Period:** The minimum time before a new major version release that all participants must be notified.
 - **Centralized Testing Environment:** Whether the federation provides a shared testing environment or if each implementor is responsible for their own.
 
 For details on these parameters, refer to the **FFI Federation Configuration Document**.

@@ -8,7 +8,7 @@ The file `default.yaml` defines baseline values that apply unless a specific fed
 
 All values are defined as key-value pairs in YAML format. Parameters follow these conventions:
 
-* **Durations** (e.g. `pollingInterval`, `transitionPeriod`, `notificationPeriod`) use the [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations):
+* **Durations** (e.g. `pollingInterval`, `transitionPeriod`) use the [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations):
 
   * `PT5M` = 5 minutes
   * `P30D` = 30 days

@@ -12,6 +12,8 @@ Below is a list of the available conventions.
 |------------|-------------|
 | [Compression](./handling-compression-and-large-responses.md) | Specifies how clients and servers must handle large responses, gzip compression, relevant headers, and applicable error handling. |
 | [Connectivity](./handling-connectivity-check.md) | Defines how a standardized `ConnectivityCheck` message-type is used to verify successful onboarding and operational readiness of FFI clients and servers in production. |
+| [Contracts](./handling-bilateral-contracts.md) | Defines bilateral contract governance, the interaction between two entities. |
+| [Messages](./handling-timestamps-and-lifecycle-events.md) | Defines the standard message lifecycle for all message exchanges. |
 | [Polling](./handling-response-polling.md) | Defines polling behavior for the `/responses` endpoint, including frequency limits, best practices, alternatives via WebHooks, and rate limiting enforcement. |
 | [Security](./handling-api-security.md) | Describes authentication, authorization, certificate requirements, OAuth flows, and network security practices for secure communication in the FFI API. |
 | [Validation](./handling-schema-validation.md) | Defines how payloads must be validated using schema definitions, including versioning and enforcement rules. |

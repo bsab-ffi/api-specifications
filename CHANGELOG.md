@@ -27,4 +27,24 @@ Each repository release is dated (YYYY-MM-DD) and reflects the latest approved c
 
 ---
 
+## [2025-10-22]
+
+**Incremental publication of public FFI API specifications**
+
+- Added `core/ffi-core.yaml` (version: `3.3.0`)
+- Added `conventions/handling-bilateral-contracts.md` – governs the lifecycle for bilateral contracts
+- Added `conventions/handling-timestamps-and-lifecycle-events.md` – manage, interpret, and audit the lifecycle of message exchange
+- Updated `conventions/handling-api-security.md` – ensuring compliance with authentication, authorization, and encryption
+- Updated `conventions/handling-connectivity-check.md` – enables the verification of the connectivity
+- Updated `conventions/handling-parallel-major-versions.md` – handle new versions of the API in an efficient and predictable manner
+- Updated `conventions/handling-response-polling.md` – handle polling in a structured and scalable manner
+- Updated `conventions/handling-schema-validation.md` – handle payload validation in a structured and consistent manner
+- Updated `conventions/README.md` – referencing the FFI API conventions
+- Updated `configurations/default.yaml` – default federation parameters referenced by conventions
+- Updated `README.md` – describes repository structure and governance model
+- Updated `GETTING_STARTED.md` – step-by-step usage guide with roles, flows, and conventions
+- Updated `CHANGELOG.md` – this document
+
+---
+
 © 2025 BSAB – All rights reserved.
