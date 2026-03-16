@@ -17,7 +17,7 @@ Each participating entity acts either as:
 - **FFI Requestor (Client)** – initiates message-based communication  
 - **FFI Respondent (Server)** – receives and processes requests, returns responses  
 
-💡 Depending on the federation, an entity may need to implement **both roles**.
+Depending on the federation, an entity may need to implement **both roles**.
 
 ---
 
@@ -29,7 +29,7 @@ As a Requestor, your system must:
 3. Poll for the corresponding response  
 4. Acknowledge receipt
 
-👉 See [The Happy Flow – Request to Response Acknowledgment](#the-happy-flow--request-to-response-acknowledgment) for step-by-step details including headers, payloads, and conventions.
+See [The Happy Flow – Request to Response Acknowledgment](#the-happy-flow--request-to-response-acknowledgment) for step-by-step details including headers, payloads, and conventions.
 
 ---
 
@@ -41,7 +41,7 @@ As a Respondent, your system must:
 3. Provide responses  
 4. Receive acknowledgments
 
-👉 See [Required Conventions](#required-conventions) for responsibilities on schema validation, security, and availability handling.
+See [Required Conventions](#required-conventions) for responsibilities on schema validation, security, and availability handling.
 
 ---
 
@@ -111,7 +111,7 @@ sequenceDiagram
 - Body: JSON or XML payload matching the declared schema  
 - Response: `202 Accepted` with tracking headers
 
-📘 See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
+See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
 
 ---
 
@@ -121,7 +121,7 @@ sequenceDiagram
 - Response: List of available responseIds with metadata  
 - Constrained by polling rules
 
-📘 See: [Polling Convention](./conventions/handling-response-polling.md)
+See: [Polling Convention](./conventions/handling-response-polling.md)
 
 ---
 
@@ -133,7 +133,7 @@ sequenceDiagram
     - If `SUCCESS`, the payload conforms to the *success schema* for the message type.
     - If `ERROR`, the payload conforms to the *error schema* for that message type.
 
-📘 See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
+See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
 
 ---
 
@@ -143,7 +143,7 @@ sequenceDiagram
 - Auth: OAuth2 access token   
 - Marks message and request as completed and no longer retrievable
 
-📘 See: [Timestamps and Lifecycle Events Convention](./conventions/handling-timestamps-and-lifecycle-events.md)
+See: [Timestamps and Lifecycle Events Convention](./conventions/handling-timestamps-and-lifecycle-events.md)
 
 ---
 
