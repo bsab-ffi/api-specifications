@@ -106,7 +106,7 @@ sequenceDiagram
 
 ### POST /requests – Send a Request
 
-- Requires: `X-FFI-MessageType`, `X-FFI-MessageTypeSchemaVersion`  
+- Requires: `X-FFI-MessageType`, `X-FFI-MessageTypeSchemaVersion`, `X-FFI-ClientId`  
 - Auth: OAuth2 access token   
 - Body: JSON or XML payload matching the declared schema  
 - Response: `202 Accepted` with tracking headers
@@ -117,6 +117,7 @@ See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
 
 ### GET /responses – Poll for Responses
 
+- Requires: `X-FFI-ClientId`  
 - Auth: OAuth2 access token   
 - Response: List of available responseIds with metadata  
 - Constrained by polling rules
@@ -127,6 +128,7 @@ See: [Polling Convention](./conventions/handling-response-polling.md)
 
 ### GET /responses/{responseId} – Retrieve the Response
 
+- Requires: `X-FFI-ClientId`  
 - Auth: OAuth2 access token   
 - Optional header: `Accept-Encoding: gzip`  
 - Response schema depends on `X-FFI-ProcessingResult`
@@ -139,7 +141,7 @@ See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
 
 ### POST /responses/{responseId}/acknowledge – Confirm Receipt
 
-- Header: `X-FFI-AcknowledgeStatus: SUCCEEDED | FAILED`  
+- Header: `X-FFI-AcknowledgeStatus: SUCCEEDED | FAILED`, `X-FFI-ClientId`    
 - Auth: OAuth2 access token   
 - Marks message and request as completed and no longer retrievable
 
