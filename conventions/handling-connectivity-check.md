@@ -38,3 +38,4 @@ Schema access to the **ConnectivityCheck** message-type including examples and c
 
 ## Federation-Specific Parameters
 This convention does not have any federation-specific parameters.
+

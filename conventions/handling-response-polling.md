@@ -36,3 +36,4 @@ Certain parameters in this document are defined at the **federation level** and 
 - **Polling Interval:** The minimum time between consecutive polling requests from the same client.
 
 For details on these parameters, refer to the **FFI Federation Configuration Document**.
+

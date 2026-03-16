@@ -21,8 +21,12 @@ The FFI network consists of the following key components:
 - FFI Servers must rely on trusted and pre-registered X.509 TLS Client Certificates for client authentication.
 - FFI Clients must comply with the FFI Server’s requirements for certificate issuance and trusted signing authorities.
 - FFI Servers must technically bind the client certificate to the OAuth client registration.
-- Client authorization must be performed using OAuth 2.0 Client Credentials Flow with Mutual TLS Authentication ([RFC 8705](https://www.rfc-editor.org/rfc/rfc8705.html)) or Private Key JWT ([RFC 7523](https://www.rfc-editor.org/rfc/rfc7523.html)).
+- Client authorization must be performed using OAuth 2.0 Client Credentials Flow with Mutual TLS Authentication ([RFC 8705](https://www.rfc-editor.org/rfc/rfc8705.html)).
 - The scope parameter is required in access token requests. The value must be one or more of the following: `ffi-core`, `ffi-contract`, and `ffi-notification`. Enforcement of scope values per API is optional and determined by each FFI Server implementation.
+- As part of OAuth client registration, each FFI Client is assigned a unique client_id, which is used together with the client certificate to obtain access tokens from the FFI Server’s Authorization Server.
+- The OAuth client_id issued during onboarding must be provided as the value of the X-FFI-ClientId HTTP header in API requests.
+- If validated by the FFI Server, the value of the X-FFI-ClientId header must correspond to the client_id associated with the presented TLS client certificate.
+- The X-FFI-ClientId header is mandatory for FFI Clients to include in requests, while validation and enforcement of its value are optional and determined by each FFI Server implementation. This value is provided as supplementary request metadata and must not be used for authentication or authorization; client identity and access decisions are determined exclusively by established authentication mechanisms and validated credentials.
 - Each FFI Server operates its own OAuth 2.0 Authorization Server (AS) and exposes its own token endpoint.
 - FFI Clients must obtain access tokens directly from the Authorization Server of the FFI Server they intend to access.
 - FFI Servers only accept access tokens issued by their own Authorization Server. There is no centralized Authorization Server or token federation within the FFI network.
