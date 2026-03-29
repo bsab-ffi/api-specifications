@@ -16,7 +16,7 @@ tags:
   - name: Responses
     description: Manage responses.
 servers:
-  - url: /core/v3
+  - url: /core/v4
     description: Relative base path for the Core API
 security:
   - OAuth2: []

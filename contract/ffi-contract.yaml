@@ -8,7 +8,7 @@ tags:
   - name: Contract
     description: Manage contract.
 servers:
-  - url: /contract/v1
+  - url: /contract/v2
     description: Relative base path for the Contract API
 security:
   - OAuth2: []
