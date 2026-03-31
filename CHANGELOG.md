@@ -51,8 +51,8 @@ Each repository release is dated (YYYY-MM-DD) and reflects the latest approved c
 
 **Incremental publication of public FFI API specifications**
 
-- Updated `core/ffi-core.yaml` (version: `4.0.0`) – introduced relative paths with `/core/v3` server base path, replaced `BearerAuth` with global `OAuth2`, added required `X-FFI-ClientId` header support, added `500` responses, and clarified payload and schema validation semantics
-- Updated `contract/ffi-contract.yaml` (version: `2.0.0`) – introduced relative path `/contract` with `/contract/v1` server base path, replaced `BearerAuth` with global `OAuth2`, added required `X-FFI-ClientId` header support, added `500` responses, and clarified contract activation behavior
+- Updated `core/ffi-core.yaml` (version: `4.0.1`) – introduced relative paths with `/core/v4` server base path, replaced `BearerAuth` with global `OAuth2`, added required `X-FFI-ClientId` header support, added `500` responses, and clarified payload and schema validation semantics
+- Updated `contract/ffi-contract.yaml` (version: `2.0.1`) – introduced relative path `/contract` with `/contract/v2` server base path, replaced `BearerAuth` with global `OAuth2`, added required `X-FFI-ClientId` header support, added `500` responses, and clarified contract activation behavior
 - Updated `conventions/handling-api-security.md` – aligned security requirements to OAuth 2.0 Client Credentials with mutual TLS and documented usage rules for `client_id` and `X-FFI-ClientId`
 - Updated `conventions/handling-bilateral-contracts.md` – clarified that ongoing message exchanges remain governed by the contract active when the exchange was initiated
 - Updated `conventions/handling-schema-validation.md` – clarified layered validation semantics, including deferred validation of inner content and schema version interpretation for business content
