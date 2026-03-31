@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Core API
-  version: 4.0.0
+  version: 4.0.1
   description: |
     The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
 

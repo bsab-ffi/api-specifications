@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Contract API 
-  version: 2.0.0
+  version: 2.0.1
   description: |
     This API allows retrieval of the bilateral contract between the client (consumer, aka FFI requestor) and the server (provider, aka FFI respondent).
 tags:
