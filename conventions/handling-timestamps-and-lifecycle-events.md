@@ -73,3 +73,4 @@ All timestamps **MUST** conform to the format specified by the `MessageTimestamp
 Certain parameters in this document are defined at the **federation level** and must be specified in the **FFI Federation Configuration Document**. These parameters include:
 
 - **CompletionGracePeriod**: Defines the maximum allowed time from response creation to automatic lifecycle completion in cases where no explicit acknowledgement or deletion has occurred.
+

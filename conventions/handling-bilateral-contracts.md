@@ -50,6 +50,10 @@ Schemas (e.g., S1, S2) are published centrally by the federation and define the 
 - Deprecation of a schema at the federation level mandates that future contracts **must not** include that version.
 - Once the federative transition period ends, all members must operate using contracts aligned with current schema standards.
 
+### Message Exchanges During Contract Replacement
+
+A message exchange must be validated and processed according to the bilateral contract that was active when the first message in the exchange was received. Participants must retain the ability to process and respond to messages using schema versions that were valid at the time of request creation, even if later contracts remove support for those versions. Replacing a contract does not invalidate ongoing exchanges that were initiated under the previous contract. 
+
 ## Federation-Specific Parameters
 
 Defined in the **FFI Federation Configuration Document**:

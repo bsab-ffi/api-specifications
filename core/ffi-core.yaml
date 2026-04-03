@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Core API
-  version: 3.3.0
+  version: 4.0.1
   description: |
     The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
 
@@ -15,19 +15,23 @@ tags:
     description: Manage requests.
   - name: Responses
     description: Manage responses.
+servers:
+  - url: /core/v4
+    description: Relative base path for the Core API
+security:
+  - OAuth2: []
 paths:
-  /v3/requests:
+  /requests:
     post:
       summary: Create a request.
       description: This endpoint allows users to create a new request in the Financial Flow Infrastructure Core API.
       tags:
         - Requests
       operationId: postRequest
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/messageTypeHeader'
         - $ref: '#/components/parameters/messageTypeSchemaVersionHeader'
+        - $ref: '#/components/parameters/clientIdHeader'
       requestBody:
         description: >
           Contains the request payload to be submitted to the Financial Flow Infrastructure Core API.
@@ -63,17 +67,18 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
-  /v3/requests/{requestId}:
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+  /requests/{requestId}:
     delete:
       summary: Delete (abort) a request.
       description: This endpoint allows users to delete (abort) a specific request by its identifier.
       tags:
         - Requests
       operationId: deleteRequest
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/requestIdPath'
+        - $ref: '#/components/parameters/clientIdHeader'
       responses:
         204:
           description: No Content - Request deleted (aborted) successfully.
@@ -95,15 +100,17 @@ paths:
           description: Not Found - indicates that the server did not find the referenced request.
         405:
           description: Method Not Allowed - indicates that the message type does not allow to be aborted.
-  /v3/responses:
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+  /responses:
     get:
       summary: Get all available responses.
       description: This endpoint provides a list of all processed responses that are available for retrieval.
       tags:
         - Responses
       operationId: getResponseList
-      security:
-        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/clientIdHeader'
       responses:
         200:
           description: OK - API client authorized, and request is validated.
@@ -132,17 +139,18 @@ paths:
               description: The number of seconds the client must wait before making another request.
               schema:
                 type: integer
-  /v3/responses/{responseId}:
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+  /responses/{responseId}:
     get:
       summary: Get a response.
       description: This endpoint retrieves a response associated with a given response identifier. The response might be compressed for large payloads.
       tags:
         - Responses
       operationId: getResponse
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/responseIdPath'
+        - $ref: '#/components/parameters/clientIdHeader'
         - name: Accept-Encoding
           in: header
           description: Indicates that the client accepts gzip-encoded responses in case the payload exceeds 2kB.
@@ -203,18 +211,19 @@ paths:
           description: Not Found - indicates that the server did not find the referenced response message.
         406:
           description: Not Acceptable  - indicates that the client's Accept-header correspond to a none-existing content-type for the response.
-  /v3/responses/{responseId}/acknowledge:
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+  /responses/{responseId}/acknowledge:
     post:
       summary: Acknowledge a response.
       description: This endpoint allows users to acknowledge the receipt of a response.
       tags:
         - Responses
       operationId: postResponseAcknowledge
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/responseIdPath'
         - $ref: '#/components/parameters/acknowledgeStatusHeader'
+        - $ref: '#/components/parameters/clientIdHeader'
       responses:
         200:
           description: OK - API client authorized, and request is validated.
@@ -234,6 +243,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
         404:
           description: Not Found - indicates that the server did not find the referenced response.
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
 components:
   headers:
     responseId:
@@ -247,17 +258,28 @@ components:
       schema:
         $ref: '#/components/schemas/MessageIdentity'
     messageType:
-      description: The message type corresponds to the specification and schema used to create and validate the content of a FFI message.
+      description: >
+        The message type identifies the specification of the business data that is
+        being exchanged. It describes the intended meaning and structure of the
+        data, regardless of how the message is represented or wrapped during
+        transport.
       required: true
       schema:
         $ref: '#/components/schemas/MessageType'
     processingResult:
-      description: The processing result corresponds to the detailed schema used to create and validate the content of an FFI message.
+      description: >
+        The processing result indicates the outcome of server-side processing.
+        The value does not imply when or how validation of inner content was
+        performed.
       required: true
       schema:
         $ref: '#/components/schemas/ProcessingResult'
     messageTypeSchemaVersion:
-      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      description: >
+        Identifier of the schema version associated with the declared message
+        type. The version refers to the schema definition agreed within the
+        bilateral contract. Validation of transformed or wrapped payloads may
+        require additional processing outside the transport layer.
       required: true
       schema:
         $ref: '#/components/schemas/MessageTypeSchemaVersion'
@@ -285,7 +307,10 @@ components:
       example: cb4c479f-6161-4ade-b51b-e78428229dad
     messageTypeHeader:
       name: X-FFI-MessageType
-      description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message.
+      description: >
+        Declares the message type of the FFI message. The value identifies the
+        specification associated with the payload, independent of whether the
+        transported body is wrapped, transformed, or directly schema-validatable.
       in: header
       required: true
       schema:
@@ -293,7 +318,11 @@ components:
       example: TransactionInquiry
     messageTypeSchemaVersionHeader:
       name: X-FFI-MessageTypeSchemaVersion
-      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
+      description: >
+        Declares the version of the schema associated with the message type.
+        When payloads undergo wrapping or transformation, the version indicates
+        contractual expectations rather than guaranteed immediate validation at
+        the point of receipt.
       in: header
       required: true
       schema:
@@ -307,10 +336,20 @@ components:
       schema:
         $ref: '#/components/schemas/AcknowledgeStatus'
       example: SUCCEEDED
+    clientIdHeader:
+      name: X-FFI-ClientId
+      description: The OAuth Client identifier. See ClientId schema for definition.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/ClientId'
   schemas:
     MessagePayload:
       type: string
-      description: The serialized payload of the FFI message.
+      description: >
+        Serialized body of the FFI message. The content may be a direct business
+        structure or a transformed form such as a wrapper, depending on the
+        message type defined in the bilateral contract.
     MessageMetadata:
       type: array
       description: The collection of metadata associated with the FFI message, including identifiers, timestamps, and processing result.
@@ -347,6 +386,9 @@ components:
     MessageType:
       type: string
       description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
+    ClientId:
+      type: string
+      description: The OAuth client_id issued during OAuth client registration and token issuance, representing the FFI client identity as registered with the server’s authorization server. This value is provided as supplementary request metadata and must not be used for authentication or authorization; client identity and access decisions are determined exclusively by established authentication mechanisms and validated credentials.
     ProcessingResult:
       description: The result indicating the outcome of processing the request.
       type: string
@@ -404,7 +446,12 @@ components:
         - status
         - detail
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      description: The OAuth2 Bearer Token Authentication
+    OAuth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 Client Credentials flow.
+        Each implementation must replace the `tokenUrl` with the actual endpoint of their authorization server.
+      flows:
+        clientCredentials:
+          tokenUrl: https://{issuerDomain}/auth/token
+          scopes: {}

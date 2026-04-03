@@ -14,6 +14,7 @@ It includes:
 - `contract/` – Contains the OpenAPI specification for the Contract API (`ffi-contract.yaml`)
 - `conventions/` – Contains shared conventions such as naming, structures, and common rules
 - `configurations/` – Contains federation-specific configuration values used by the conventions
+- `schemas/` - Contains common message-type-specific schema definitions
 
 ## Licensing & Usage
 

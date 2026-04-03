@@ -1,22 +1,27 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Contract API 
-  version: 1.0.0
+  version: 2.0.1
   description: |
     This API allows retrieval of the bilateral contract between the client (consumer, aka FFI requestor) and the server (provider, aka FFI respondent).
 tags:
   - name: Contract
     description: Manage contract.
+servers:
+  - url: /contract/v2
+    description: Relative base path for the Contract API
+security:
+  - OAuth2: []
 paths:
-  /v1/contract:
+  /contract:
     get:
       summary: Get your contract.
       description: This endpoint retrieves the bilateral contract between the client (consumer, aka FFI requestor) and the server (provider, aka FFI respondent).
       tags:
         - Contract
       operationId: getContract
-      security:
-        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/clientIdHeader'
       responses:
         200:
           description: OK - API client authorized.
@@ -78,8 +83,21 @@ paths:
                 message: No active bilateral contract found for the specified client.
                 details:
                   reason: The contract may not exist, has expired, or is not yet active.
+        500:
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
 components:
+  parameters:
+    clientIdHeader:
+      name: X-FFI-ClientId
+      description: The OAuth Client identifier. See ClientId schema for definition.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/ClientId'
   schemas:
+    ClientId:
+      type: string
+      description: The OAuth client_id issued during OAuth client registration and token issuance, representing the FFI client identity as registered with the server’s authorization server. This value is provided as supplementary request metadata and must not be used for authentication or authorization; client identity and access decisions are determined exclusively by established authentication mechanisms and validated credentials.
     ContractPayload:
       type: object
       required:
@@ -98,7 +116,7 @@ components:
         createDate:
             type: string
             format: date-time
-            description: The date and time when the contract becomes active and enforceable. Must be compliant with the date-time format defined in RFC 3339.
+            description: The date and time when this contract became active and enforceable. Contracts are never exposed before they become effective; each new contract immediately replaces any previous one and becomes active upon publication. Must be compliant with the date-time format defined in RFC 3339.
         modifiedDate:
             type: string
             format: date-time
@@ -170,7 +188,12 @@ components:
           additionalProperties: true
           description: Additional context-specific details about the error.
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      description: OAuth2 Bearer Token Authentication
+    OAuth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 Client Credentials flow.
+        Each implementation must replace the `tokenUrl` with the actual endpoint of their authorization server.
+      flows:
+        clientCredentials:
+          tokenUrl: https://{issuerDomain}/auth/token
+          scopes: {}
