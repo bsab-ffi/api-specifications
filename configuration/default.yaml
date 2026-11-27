@@ -1,0 +1,35 @@
+# handling-schema-validation.md
+# Official mechanism used to distribute schemas within the federation.
+schemaDistributionMechanism: "email"
+
+# handling-response-polling.md
+# Minimum time between consecutive polling requests from the same client.
+pollingInterval: "PT5M"
+
+# handling-compression-and-large-responses.md
+# Response size threshold in bytes above which gzip compression is required.
+maximumResponseSizeThreshold: 2048
+
+# handling-bilateral-contracts.md
+# Maximum federation-wide period during which old and new message type versions may coexist.
+federativeMessageTypeTransitionPeriod: "P12M"
+# Maximum bilateral message type transition period for an individual consumer-provider pair.
+bilateralMessageTypeTransitionPeriod: "P3M"
+
+# handling-timestamps-and-lifecycle-events.md
+# Maximum time from response creation until lifecycle auto-completion when no explicit completion occurs.
+completionGracePeriod: "P10D"
+
+# handling-runtime-errors.md
+# Recommended maximum time a client waits for a synchronous response before treating it as timed out.
+responseTimeout: "PT30S"
+# Delay before the first retry attempt unless Retry-After is provided.
+initialDelay: "PT5S"
+# Retry delay policy for retryable synchronous failures.
+backoffStrategy: "exponential"
+# Maximum number of retry attempts for retryable synchronous failures.
+retryLimit: 5
+# Number of consecutive retryable failures before the circuit breaker is opened.
+circuitBreakerThreshold: 5
+# Minimum time to wait before resuming requests after the circuit breaker has opened.
+circuitBreakerCooldownPeriod: "PT10M"

@@ -4,7 +4,7 @@ By following this section of the General FFI API Conventions, we ensure that all
 
 ## General Principles
 
-- The purpose of this section is to regulate how frequently clients can poll for responses using the `GET /[MAJOR-API-VERSION]/responses` endpoint.
+- The purpose of this section is to regulate how frequently clients can poll for responses using the `GET /core/vN/responses` endpoint, where `N` is the Core API major version.
 - This section applies to all participating entities (banks, authorities, etc.) connected to the FFI network.
 - Polling limits are established to balance system efficiency with the need for timely response retrieval.
 - Clients **SHOULD** use the **FFI Notification API** as a WebHook-based alternative to polling where supported.
@@ -36,4 +36,3 @@ Certain parameters in this document are defined at the **federation level** and 
 - **Polling Interval:** The minimum time between consecutive polling requests from the same client.
 
 For details on these parameters, refer to the **FFI Federation Configuration Document**.
-

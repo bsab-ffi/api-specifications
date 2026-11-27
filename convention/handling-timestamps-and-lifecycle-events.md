@@ -8,6 +8,7 @@ By defining this section within the General FFI API Conventions, we ensure consi
 - It applies to **requests**, **responses**, and optionally **errors**.
 - All lifecycle transitions must be observable through defined timestamp fields.
 - API consumers and providers **MUST** align to the behavioral expectations for lifecycle-related operations such as **ACKNOWLEDGE** and **DELETE**.
+- Runtime compatibility is defined by `messageType` and `messageTypeVersion`.
 
 ## Lifecycle Phases
 
@@ -38,7 +39,8 @@ All timestamps **MUST** conform to the format specified by the `MessageTimestamp
 ### Acknowledge
 
 - Clients **SHOULD** acknowledge responses using `POST /responses/{responseId}/acknowledge`.
-- The header `X-FFI-AcknowledgeStatus` **MUST** be set to either `SUCCEEDED` or `FAILED`.
+- The header `X-FFI-ProcessingResult` **MUST** be set to either `SUCCESS` or `ERROR`.
+- When `X-FFI-ProcessingResult` is `ERROR`, the client **MUST** send an `ErrorPayload` body. All properties in that body are optional.
 - Servers MAY log the time of acknowledgement internally for traceability and SLA purposes.
 - Once a response has been acknowledged, the server **MUST** remove it from availability for that client.
 
@@ -46,7 +48,7 @@ All timestamps **MUST** conform to the format specified by the `MessageTimestamp
 
 - `DELETE` is available only for **requests**, using the `DELETE /requests/{requestId}` endpoint.
 - The server MUST respond with `405 Method Not Allowed` if the message type does not allow deletion.
-- Semantics (abort, cancel, hide) MUST be defined per messageType in schema or federation-specific documentation.
+- Semantics (abort, cancel, hide) MUST be defined per messageType in message type documentation or federation-specific documentation.
 - Unless explicitly stated otherwise, deletion MUST be treated as a **soft delete** — i.e., the message remains audit-accessible.
 
 ## SLA and Audit Considerations
@@ -54,6 +56,7 @@ All timestamps **MUST** conform to the format specified by the `MessageTimestamp
 - SLA evaluation MUST be based on defined timestamp fields:
   - SLA **starts** at the `X-FFI-CreateDateTime` of the **request**.
   - SLA **ends** at the `X-FFI-CreateDateTime` of the **response**.
+- Internal faults, outages, dependency failures, and other non-client-actionable operational issues **MUST NOT** result in the creation of an FFI response, since doing so would shift responsibility to the client and distort SLA evaluation for issues that must be resolved internally.
 - A message exchange is considered **complete** when:
   - The response is acknowledged, or
   - The request is deleted, or
@@ -61,16 +64,14 @@ All timestamps **MUST** conform to the format specified by the `MessageTimestamp
 
 ## Consistency Across Message Exchange
 
-- The same `messageType` and `messageTypeSchemaVersion` MUST be used consistently across:
+- The same `messageType` and `messageTypeVersion` MUST be used consistently across:
   - The request
-  - The corresponding response
-  - Any error payloads linked to the message exchange
+  - The corresponding response when `X-FFI-ProcessingResult` is `SUCCESS`
 - Identifiers (`requestId`, `responseId`) MUST be used to correlate data across endpoints.
-- Implementers MUST NOT change `messageType` or `schemaVersion` during the course of a message exchange.
+- Implementers MUST NOT change `messageType` or `messageTypeVersion` during the course of a message exchange.
 
 ## Federation-Specific Parameters
 
 Certain parameters in this document are defined at the **federation level** and must be specified in the **FFI Federation Configuration Document**. These parameters include:
 
 - **CompletionGracePeriod**: Defines the maximum allowed time from response creation to automatic lifecycle completion in cases where no explicit acknowledgement or deletion has occurred.
-
