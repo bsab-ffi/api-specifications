@@ -1,0 +1,244 @@
+openapi: 3.0.3
+info:
+  title: Financial Flow Infrastructure Contract API 
+  version: 3.0.0
+  description: |
+    This API allows retrieval of the bilateral contract between the consumer and the provider.
+tags:
+  - name: Contract
+    description: Manage contract.
+servers:
+  - url: /contract/v3
+    description: Relative base path for the Contract API
+security:
+  - OAuth2: []
+paths:
+  /contract:
+    get:
+      summary: Get your contract.
+      description: This endpoint retrieves the bilateral contract between the consumer and the provider.
+      tags:
+        - Contract
+      operationId: getContract
+      parameters:
+        - $ref: '#/components/parameters/traceIdHeader'
+        - $ref: '#/components/parameters/clientIdHeader'
+      responses:
+        '200':
+          description: OK - API client authorized.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractPayload'
+              example:
+                contractId: "a6b4e9f3-8df3-4e02-ae3b-992f418e24f5"
+                createDate: "2025-07-01T12:00:00Z"
+                modifiedDate: "2025-10-10T11:00:00Z"
+                providerId: "bank-a.com"
+                consumerId: "bank-b.com"
+                technicalContact: "ffi-support@bank-a.com"
+                messageTypes:
+                  - messageType: "MessageType1"
+                    businessContact: "mt1-support@bank-a.com"
+                    responseTime: "P2D"
+                    createDate: "2025-07-01T12:00:00Z"
+                    modifiedDate: "2025-10-10T11:00:00Z"
+                    messageTypeVersions:
+                      - "1"
+                  - messageType: "MessageType2"
+                    businessContact: "mt2-support@bank-a.com"
+                    responseTime: "PT12H"
+                    createDate: "2025-08-01T12:00:00Z"
+                    modifiedDate: "2025-09-10T11:00:00Z"
+                    messageTypeVersions:
+                      - "1"
+                      - "2"
+        '400':
+          description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
+          description: Unauthorized - the client request lacks valid authentication credentials.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '404':
+          description: >
+            Not Found - no active bilateral contract is available for the calling
+            client in the current context. This can mean that the contract does
+            not exist, is not currently active, or is otherwise not available to
+            the caller.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '500':
+          description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+components:
+  headers:
+    traceId:
+      description: The `X-FFI-TraceId` response header for the current HTTP interaction.
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceId'
+      example: 4bf92f35-77b3-4da6-a3ce-929d0e0e4736
+  parameters:
+    traceIdHeader:
+      name: X-FFI-TraceId
+      description: The `X-FFI-TraceId` request header for the current HTTP interaction.
+      in: header
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceId'
+      example: 4bf92f35-77b3-4da6-a3ce-929d0e0e4736
+    clientIdHeader:
+      name: X-FFI-ClientId
+      description: The OAuth Client identifier. See ClientId schema for definition.
+      in: header
+      required: true
+      schema:
+        $ref: '#/components/schemas/ClientId'
+  schemas:
+    ClientId:
+      type: string
+      description: The OAuth client_id issued during OAuth client registration and token issuance, representing the FFI client identity as registered with the server’s authorization server. This value is provided as supplementary request metadata and must not be used for authentication or authorization; client identity and access decisions are determined exclusively by established authentication mechanisms and validated credentials.
+    TraceId:
+      type: string
+      format: uuid
+      description: >
+        Identifier assigned to a single HTTP request for technical observability.
+        When returned in the corresponding HTTP response, the same value enables
+        client-side and server-side log entries for that HTTP interaction to be
+        matched. It does not identify or correlate an FFI request, response, or
+        message exchange and MUST NOT be used for business correlation,
+        authorization, message identity, idempotency, or contractual validation.
+    EntityId:
+      type: string
+      pattern: ^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}$
+      description: The unique identifier of a legal FFI participant, following the FFI-defined identity convention expressed by this schema's pattern. In the Contract API, this value identifies the legal entity acting as the consumer or provider in a bilateral relationship. Comparison of EntityId values is case-insensitive.
+    ContractPayload:
+      type: object
+      required:
+        - contractId
+        - createDate
+        - modifiedDate
+        - consumerId
+        - providerId
+        - technicalContact
+        - messageTypes
+      properties:
+        contractId:
+          type: string
+          format: uuid
+          description: The identifier for the contract. Must be globally unique and compliant with RFC4122.
+        createDate:
+            type: string
+            format: date-time
+            description: The date and time when the bilateral contract relationship was first created. This value remains unchanged when a replacement contract is issued. Must be compliant with the date-time format defined in RFC 3339.
+        modifiedDate:
+            type: string
+            format: date-time
+            description: The date and time when this immutable contract representation was issued and became active. The active contract for a consumer-provider pair is the contract with the most recent modifiedDate. For the first contract in a bilateral relationship, modifiedDate is equal to createDate. Must be compliant with the date-time format defined in RFC 3339.
+        providerId:
+          allOf:
+            - $ref: '#/components/schemas/EntityId'
+          description: The EntityId of the legal entity acting as the provider in the bilateral relationship.
+        consumerId:
+          allOf:
+            - $ref: '#/components/schemas/EntityId'
+          description: The EntityId of the legal entity acting as the consumer in the bilateral relationship.
+        technicalContact:
+          type: string
+          format: email
+          description: Email address for technical support.
+        messageTypes:
+          type: array
+          items:
+            type: object
+            required:
+              - messageType
+              - businessContact
+              - responseTime
+              - createDate
+              - modifiedDate
+              - messageTypeVersions
+            properties:
+              messageType:
+                type: string
+                description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
+              businessContact:
+                type: string
+                format: email
+                description: Email address for business support.
+              responseTime:
+                type: string
+                pattern: ^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$
+                description: |
+                  The maximum allowed response time for handling the associated message type, as defined in the bilateral contract.
+                  Must follow the ISO 8601 duration format (e.g., "P2D" for two days, "PT12H" for twelve hours).
+              createDate:
+                type: string
+                format: date-time
+                description: The date and time when the messageType became active. Must be compliant with the date-time format defined in RFC 3339.
+              modifiedDate:
+                type: string
+                format: date-time
+                description: The date and time when the messageType has been changed/updated typical a version change. Must be compliant with the date-time format defined in RFC 3339.
+              messageTypeVersions:
+                type: array
+                description: >
+                  The message type versions supported for this message type in
+                  the bilateral contract. Each version identifies the complete
+                  contractual requirement set for the message type, including
+                  schema, interpretation, validation, and processing
+                  expectations. The applicable validation schema is derived from
+                  the combination of messageType and messageTypeVersion.
+                items:
+                  $ref: '#/components/schemas/MessageTypeVersion'
+    MessageTypeVersion:
+      type: string
+      pattern: ^[1-9]\d*$
+      description: The identifier of the message type version utilized for crafting and validating the content of the message.
+    ErrorPayload:
+      type: object
+      additionalProperties: false
+      description: >
+        Simplified FFI error structure for synchronous transport errors. All
+        properties are optional, and an empty object is a valid ErrorPayload.
+        This Contract API version does not define a shared catalog of error
+        types.
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: >
+            Optional identifier of the error type. No FFI-defined values or
+            shared machine-readable meaning are specified by this API version.
+        detail:
+          type: string
+          description: Optional client-facing explanation specific to this error occurrence.
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 Client Credentials flow.
+        Each implementation must replace the `tokenUrl` with the actual endpoint of their authorization server.
+      flows:
+        clientCredentials:
+          tokenUrl: https://{issuerDomain}/auth/token
+          scopes: {}

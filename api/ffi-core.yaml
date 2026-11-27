@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Financial Flow Infrastructure Core API
-  version: 4.0.1
+  version: 5.0.0
   description: |
     The Financial Flow Infrastructure (FFI) Core API is a standardized interface for secure digital financial message exchange among various entities. It promotes interoperability between financial institutions, government agencies, and other stakeholders in the financial ecosystem.
 
@@ -16,7 +16,7 @@ tags:
   - name: Responses
     description: Manage responses.
 servers:
-  - url: /core/v4
+  - url: /core/v5
     description: Relative base path for the Core API
 security:
   - OAuth2: []
@@ -30,13 +30,16 @@ paths:
       operationId: postRequest
       parameters:
         - $ref: '#/components/parameters/messageTypeHeader'
-        - $ref: '#/components/parameters/messageTypeSchemaVersionHeader'
+        - $ref: '#/components/parameters/messageTypeVersionHeader'
+        - $ref: '#/components/parameters/traceIdHeader'
         - $ref: '#/components/parameters/clientIdHeader'
       requestBody:
         description: >
           Contains the request payload to be submitted to the Financial Flow Infrastructure Core API.
           The payload may be provided in either JSON or XML format and must conform to the schema
-          defined by the messageType and messageTypeSchemaVersion headers.
+          associated with the declared messageTypeVersion for the specified
+          messageType. The applicable schema is derived from the combination of
+          messageType and messageTypeVersion.
         required: true
         content:
           application/json:
@@ -46,29 +49,39 @@ paths:
             schema:
               $ref: '#/components/schemas/MessagePayload'
       responses:
-        202:
+        '202':
           description: Accepted - API client authorized and a new request was created for processing.
           headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
             X-FFI-RequestId:
               $ref: '#/components/headers/requestId'
             X-FFI-CreateDateTime:
               $ref: '#/components/headers/createDateTime'
-        400:
+        '400':
           description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-        401:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
-        403:
-          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        500:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '500':
           description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
   /requests/{requestId}:
     delete:
       summary: Delete (abort) a request.
@@ -78,30 +91,51 @@ paths:
       operationId: deleteRequest
       parameters:
         - $ref: '#/components/parameters/requestIdPath'
+        - $ref: '#/components/parameters/traceIdHeader'
         - $ref: '#/components/parameters/clientIdHeader'
       responses:
-        204:
+        '204':
           description: No Content - Request deleted (aborted) successfully.
-        400:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '400':
           description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-        401:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
-        403:
-          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        404:
-          description: Not Found - indicates that the server did not find the referenced request.
-        405:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '404':
+          description: >
+            Not Found - no request is available for the referenced identifier in
+            the current context. This can mean that the request does not exist,
+            is no longer available, or is otherwise not available to the caller.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '405':
           description: Method Not Allowed - indicates that the message type does not allow to be aborted.
-        500:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '500':
           description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
   /responses:
     get:
       summary: Get all available responses.
@@ -110,37 +144,68 @@ paths:
         - Responses
       operationId: getResponseList
       parameters:
+        - $ref: '#/components/parameters/traceIdHeader'
         - $ref: '#/components/parameters/clientIdHeader'
       responses:
-        200:
+        '200':
           description: OK - API client authorized, and request is validated.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageMetadata'
-        400:
+              examples:
+                processingResultSuccess:
+                  summary: Response metadata with successful processing
+                  value:
+                    - requestId: cb4c479f-6161-4ade-b51b-e78428229dad
+                      responseId: 9978e48c-736a-4a81-b799-26b08a5b8426
+                      createDateTime: 2024-04-30T12:34:56Z
+                      messageType: TransactionInquiry
+                      processingResult: SUCCESS
+                      messageTypeVersion: "1"
+                processingResultError:
+                  summary: Response metadata with technical processing error
+                  value:
+                    - requestId: a31931f3-3d7c-43f4-b81a-8e2f58c42fcd
+                      responseId: e171a7ce-c64f-4f3d-a7ce-47334d4647c0
+                      createDateTime: 2024-04-30T12:36:10Z
+                      processingResult: ERROR
+        '400':
           description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-        401:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
-        403:
-          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        429:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '429':
           description: Too Many Requests - Client has exceeded the allowed polling frequency.
           headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
             Retry-After:
               description: The number of seconds the client must wait before making another request.
               schema:
                 type: integer
-        500:
+        '500':
           description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
   /responses/{responseId}:
     get:
       summary: Get a response.
@@ -150,6 +215,7 @@ paths:
       operationId: getResponse
       parameters:
         - $ref: '#/components/parameters/responseIdPath'
+        - $ref: '#/components/parameters/traceIdHeader'
         - $ref: '#/components/parameters/clientIdHeader'
         - name: Accept-Encoding
           in: header
@@ -160,26 +226,30 @@ paths:
             enum:
               - gzip
       responses:
-        200:
-          description: OK - API client authorized, and request is validated.
+        '200':
+          description: >
+            OK - API client authorized, and request is validated. When
+            X-FFI-ProcessingResult is SUCCESS, the body contains the FFI
+            response payload as MessagePayload. The payload is transport-opaque
+            to the Core API. Its media type is defined by the declared message
+            type and version and is communicated through the Content-Type
+            response header. This operation supports application/json and
+            application/xml. When
+            X-FFI-ProcessingResult is ERROR, the body contains an ErrorPayload
+            in application/json and no business response payload is returned.
           headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
             X-FFI-ResponseId:
               $ref: '#/components/headers/responseId'
             X-FFI-MessageType:
               $ref: '#/components/headers/messageType'
+            X-FFI-MessageTypeVersion:
+              $ref: '#/components/headers/messageTypeVersion'
             X-FFI-ProcessingResult:
               $ref: '#/components/headers/processingResult'
-            X-FFI-MessageTypeSchemaVersion:
-              $ref: '#/components/headers/messageTypeSchemaVersion'
             X-FFI-CreateDateTime:
               $ref: '#/components/headers/createDateTime'
-            Content-Type:
-              description: The content type of the response.
-              schema:
-                type: string
-                enum:
-                  - application/json
-                  - application/xml
             Content-Encoding:
               description: The content encoding of the response.
               schema:
@@ -189,64 +259,133 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessagePayload'
+                anyOf:
+                  - $ref: '#/components/schemas/MessagePayload'
+                  - $ref: '#/components/schemas/ErrorPayload'
             application/xml:
               schema:
                 $ref: '#/components/schemas/MessagePayload'
-        400:
+        '400':
           description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-        401:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
-        403:
-          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        404:
-          description: Not Found - indicates that the server did not find the referenced response message.
-        406:
-          description: Not Acceptable  - indicates that the client's Accept-header correspond to a none-existing content-type for the response.
-        500:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '404':
+          description: >
+            Not Found - no response is available for the referenced identifier in
+            the current context. This can mean that the response does not exist,
+            is no longer available, or is otherwise not available to the caller.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '413':
+          description: Payload Too Large - indicates that the response payload exceeds the size threshold and cannot be returned because the client did not declare support for gzip compression.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '500':
           description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
   /responses/{responseId}/acknowledge:
     post:
       summary: Acknowledge a response.
-      description: This endpoint allows users to acknowledge the receipt of a response.
+      description: >
+        This endpoint allows users to acknowledge the receipt of a response.
+        When X-FFI-ProcessingResult is SUCCESS, no request body is sent. When
+        X-FFI-ProcessingResult is ERROR, an ErrorPayload request body must be
+        sent. OpenAPI models the request body as optional structurally, while
+        the protocol requires it when the header value is ERROR.
       tags:
         - Responses
       operationId: postResponseAcknowledge
       parameters:
         - $ref: '#/components/parameters/responseIdPath'
-        - $ref: '#/components/parameters/acknowledgeStatusHeader'
+        - $ref: '#/components/parameters/processingResultHeader'
+        - $ref: '#/components/parameters/traceIdHeader'
         - $ref: '#/components/parameters/clientIdHeader'
+      requestBody:
+        description: >
+          Optional client-side processing error report. When
+          X-FFI-ProcessingResult is SUCCESS, the request body is omitted. When
+          X-FFI-ProcessingResult is ERROR, an ErrorPayload request body must be
+          sent. All ErrorPayload properties are optional.
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorPayload'
+            examples:
+              processingResultSuccess:
+                summary: Success acknowledge sends no request body
+                description: >
+                  Use X-FFI-ProcessingResult: SUCCESS and omit the request body.
+              processingResultError:
+                summary: Error acknowledge sends an ErrorPayload body
+                value:
+                  detail: The payload could not be processed because it did not conform to the agreed message structure.
       responses:
-        200:
+        '200':
           description: OK - API client authorized, and request is validated.
-        400:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '400':
           description: Bad Request - signifies that the request is malformed, contains invalid parameters, or is otherwise schema invalid.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
-        401:
+                $ref: '#/components/schemas/ErrorPayload'
+        '401':
           description: Unauthorized - indicates that the client request has not been completed because it lacks valid authentication credentials for the requested resource.
-        403:
-          description: Forbidden - indicates that the server understands the request but refuses to authorize it in relation to the bilateral contract between the parties.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        404:
-          description: Not Found - indicates that the server did not find the referenced response.
-        500:
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '403':
+          description: "Forbidden: indicates that the server understands the request but refuses to authorize it."
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '404':
+          description: >
+            Not Found - no response is available for acknowledgment for the
+            referenced identifier in the current context. This can mean that the
+            response does not exist, is no longer available, or is otherwise not
+            available to the caller.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
+        '500':
           description: Internal Server Error - indicates that an unexpected condition was encountered preventing the server from fulfilling the request.
+          headers:
+            X-FFI-TraceId:
+              $ref: '#/components/headers/traceId'
 components:
   headers:
+    traceId:
+      description: The `X-FFI-TraceId` response header for the current HTTP interaction.
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceId'
+      example: 4bf92f35-77b3-4da6-a3ce-929d0e0e4736
     responseId:
       description: The identifier of the response.
       required: true
@@ -262,10 +401,21 @@ components:
         The message type identifies the specification of the business data that is
         being exchanged. It describes the intended meaning and structure of the
         data, regardless of how the message is represented or wrapped during
-        transport.
-      required: true
+        transport. The header is required when X-FFI-ProcessingResult is SUCCESS
+        and may be omitted when X-FFI-ProcessingResult is ERROR.
+      required: false
       schema:
         $ref: '#/components/schemas/MessageType'
+    messageTypeVersion:
+      description: >
+        Identifier of the version associated with the declared message type. The
+        version refers to the full set of requirements agreed within the
+        bilateral contract, including schema, validation rules, and processing
+        expectations. The header is required when X-FFI-ProcessingResult is
+        SUCCESS and may be omitted when X-FFI-ProcessingResult is ERROR.
+      required: false
+      schema:
+        $ref: '#/components/schemas/MessageTypeVersion'
     processingResult:
       description: >
         The processing result indicates the outcome of server-side processing.
@@ -274,15 +424,6 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/ProcessingResult'
-    messageTypeSchemaVersion:
-      description: >
-        Identifier of the schema version associated with the declared message
-        type. The version refers to the schema definition agreed within the
-        bilateral contract. Validation of transformed or wrapped payloads may
-        require additional processing outside the transport layer.
-      required: true
-      schema:
-        $ref: '#/components/schemas/MessageTypeSchemaVersion'
     createDateTime:
       description: The timestamp indicating when the FFI message was created.
       required: true
@@ -316,26 +457,43 @@ components:
       schema:
         $ref: '#/components/schemas/MessageType'
       example: TransactionInquiry
-    messageTypeSchemaVersionHeader:
-      name: X-FFI-MessageTypeSchemaVersion
+    messageTypeVersionHeader:
+      name: X-FFI-MessageTypeVersion
       description: >
-        Declares the version of the schema associated with the message type.
-        When payloads undergo wrapping or transformation, the version indicates
-        contractual expectations rather than guaranteed immediate validation at
-        the point of receipt.
+        Declares the version of the message type associated with the payload.
+        The version identifies the full contractual requirement set for the
+        message type, including schema, interpretation, validation, and
+        processing expectations.
       in: header
       required: true
       schema:
-        $ref: '#/components/schemas/MessageTypeSchemaVersion'
-      example: 1
-    acknowledgeStatusHeader:
-      name: X-FFI-AcknowledgeStatus
-      description: The status indicating the acknowledgment of the response.
+        $ref: '#/components/schemas/MessageTypeVersion'
+      example: "1"
+    processingResultHeader:
+      name: X-FFI-ProcessingResult
+      description: >
+        Declares the client-side processing outcome for the acknowledged
+        response. When the value is SUCCESS, no error report body is sent. When
+        the value is ERROR, an ErrorPayload request body must be sent.
       in: header
       required: true
       schema:
-        $ref: '#/components/schemas/AcknowledgeStatus'
-      example: SUCCEEDED
+        $ref: '#/components/schemas/ProcessingResult'
+      examples:
+        success:
+          summary: The client processed the response successfully
+          value: SUCCESS
+        error:
+          summary: The client encountered a processing error and sends an ErrorPayload body
+          value: ERROR
+    traceIdHeader:
+      name: X-FFI-TraceId
+      description: The `X-FFI-TraceId` request header for the current HTTP interaction.
+      in: header
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceId'
+      example: 4bf92f35-77b3-4da6-a3ce-929d0e0e4736
     clientIdHeader:
       name: X-FFI-ClientId
       description: The OAuth Client identifier. See ClientId schema for definition.
@@ -347,9 +505,11 @@ components:
     MessagePayload:
       type: string
       description: >
-        Serialized body of the FFI message. The content may be a direct business
-        structure or a transformed form such as a wrapper, depending on the
-        message type defined in the bilateral contract.
+        Serialized body of the FFI message. The payload is opaque to the Core
+        API transport contract. Its media type is defined by the declared message
+        type and version and is communicated through the Content-Type response
+        header. The Core API supports application/json and application/xml for
+        MessagePayload.
     MessageMetadata:
       type: array
       description: The collection of metadata associated with the FFI message, including identifiers, timestamps, and processing result.
@@ -361,8 +521,8 @@ components:
           responseId: 9978e48c-736a-4a81-b799-26b08a5b8426
           createDateTime: 2024-04-30T12:34:56Z
           messageType: TransactionInquiry
+          messageTypeVersion: "1"
           processingResult: SUCCESS
-          messageTypeSchemaVersion: 1
     MetadataStruct:
       type: object
       description: The base object for storing FFI message metadata attributes.
@@ -373,10 +533,10 @@ components:
           $ref: '#/components/schemas/MessageIdentity'
         messageType:
           $ref: '#/components/schemas/MessageType'
+        messageTypeVersion:
+          $ref: '#/components/schemas/MessageTypeVersion'
         processingResult:
           $ref: '#/components/schemas/ProcessingResult'
-        messageTypeSchemaVersion:
-          $ref: '#/components/schemas/MessageTypeSchemaVersion'
         createDateTime:
           $ref: '#/components/schemas/MessageTimestamp'
     MessageIdentity:
@@ -386,6 +546,20 @@ components:
     MessageType:
       type: string
       description: The message type corresponding to the specification and schema used to create and validate the content of a FFI message. A messageType value is a designated grouping of FFI message types that adhere to the Pascal case naming convention.
+    MessageTypeVersion:
+      type: string
+      pattern: ^[1-9]\d*$
+      description: The identifier of the message type version utilized for crafting and validating the content of the FFI message.
+    TraceId:
+      type: string
+      format: uuid
+      description: >
+        Identifier assigned to a single HTTP request for technical observability.
+        When returned in the corresponding HTTP response, the same value enables
+        client-side and server-side log entries for that HTTP interaction to be
+        matched. It does not identify or correlate an FFI request, response, or
+        message exchange and MUST NOT be used for business correlation,
+        authorization, message identity, idempotency, or contractual validation.
     ClientId:
       type: string
       description: The OAuth client_id issued during OAuth client registration and token issuance, representing the FFI client identity as registered with the server’s authorization server. This value is provided as supplementary request metadata and must not be used for authentication or authorization; client identity and access decisions are determined exclusively by established authentication mechanisms and validated credentials.
@@ -395,10 +569,6 @@ components:
       enum:
         - SUCCESS
         - ERROR
-    MessageTypeSchemaVersion:
-      type: string
-      pattern: ^\d+$
-      description: The identifier of the schema version utilized for crafting and validating the content of the FFI message.
     MessageTimestamp:
       type: string
       format: date-time
@@ -406,45 +576,25 @@ components:
           The timestamp representing when the FFI message was created. Must follow RFC 3339, a strict subset of ISO 8601.
           The format must be 'YYYY-MM-DDTHH:mm:ssZ' or 'YYYY-MM-DDTHH:mm:ss.SSSZ', where 'Z' indicates UTC time.
           Fractional seconds (milliseconds) are optional but, if included, must have up to three decimal places.
-    AcknowledgeStatus:
-      type: string
-      enum:
-        - SUCCEEDED
-        - FAILED
-      description: The status indicating the acknowledgment of the response.
-    ApiError:
+    ErrorPayload:
       type: object
-      description: The general API error structure, commonly used for bad request errors. Based on RFC 9457.
+      additionalProperties: false
+      description: >
+        Simplified FFI error structure for synchronous transport errors and
+        asynchronous technical processing errors. All properties are optional,
+        and an empty object is a valid ErrorPayload. This Core API version does
+        not define a shared catalog of error types.
       properties:
-        instance:
-          type: string
-          format: uri-reference
-          description: The URI reference that identifies the specific occurrence of the problem.
-          example: /v3/requests
-        title:
-          type: string
-          description: The short, human-readable summary of the problem type.
-          example: Bad request - Service validation error
-        status:
-          type: integer
-          description: The HTTP status code generated by the origin server for this occurrence of the problem.
-          minimum: 100
-          maximum: 599
-          example: 400
-        detail:
-          type: string
-          description: The human-readable explanation specific to this occurrence of the problem.
-          example: A human-readable explanation specific to this occurrence of the problem.
         type:
           type: string
           format: uri-reference
-          description: The unique URI reference that identifies the problem type.
-          example: about:blank
-      required:
-        - instance
-        - title
-        - status
-        - detail
+          description: >
+            Optional identifier of the error type. No FFI-defined values or
+            shared machine-readable meaning are specified by this API version.
+        detail:
+          type: string
+          description: Optional client-facing explanation specific to this error occurrence.
+          example: The declared message type is not supported in this API interaction.
   securitySchemes:
     OAuth2:
       type: oauth2

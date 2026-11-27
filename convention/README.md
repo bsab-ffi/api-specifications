@@ -13,11 +13,13 @@ Below is a list of the available conventions.
 | [Compression](./handling-compression-and-large-responses.md) | Specifies how clients and servers must handle large responses, gzip compression, relevant headers, and applicable error handling. |
 | [Connectivity](./handling-connectivity-check.md) | Defines how a standardized `ConnectivityCheck` message-type is used to verify successful onboarding and operational readiness of FFI clients and servers in production. |
 | [Contracts](./handling-bilateral-contracts.md) | Defines bilateral contract governance, the interaction between two entities. |
+| [Entity Relationships](./handling-entity-relationships.md) | Defines how legal entities, technical implementations, credentials, ClientIds, and bilateral contracts relate to each other across FFI communication patterns. |
 | [Messages](./handling-timestamps-and-lifecycle-events.md) | Defines the standard message lifecycle for all message exchanges. |
 | [Polling](./handling-response-polling.md) | Defines polling behavior for the `/responses` endpoint, including frequency limits, best practices, alternatives via WebHooks, and rate limiting enforcement. |
+| [Runtime errors](./handling-runtime-errors.md) | Defines how synchronous transport errors and asynchronous technical processing errors are exposed, handled, acknowledged, retried, and operationally escalated. |
 | [Security](./handling-api-security.md) | Describes authentication, authorization, certificate requirements, OAuth flows, and network security practices for secure communication in the FFI API. |
+| [Technical traceability](./handling-technical-traceability.md) | Defines the `X-FFI-TraceId` header for technical observability across HTTP interactions between FFI clients and servers. |
 | [Validation](./handling-schema-validation.md) | Defines how payloads must be validated using schema definitions, including versioning and enforcement rules. |
-| [Versioning](./handling-parallel-major-versions.md) | Establishes rules for managing multiple major API versions in parallel, including transition periods, deprecation, and federation-specific parameters. |
 
 ## Updates and Maintenance
 

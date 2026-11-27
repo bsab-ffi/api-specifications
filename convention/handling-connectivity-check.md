@@ -11,14 +11,13 @@ This message-type should all implementations of the FFI-api support for all FFI-
 - Verify a newly onboarded FFI-client that authentication and authorization is working incl. the certificate, mTLS, oauth, message and version authorization etc
 - May  be used for internally trigger a connectivity check to see that the FFI-server orchestrator is up and working
 - May be used for external FFI parts to verify the FFI-server is alive i.e. up and working for a selected FFI-server
-- When a new version of the FFI-core API is implemented, it is possible to test that both the new and current APIs is working as intended
 - Verify full connectivity after a certificate renewal has been done
 
 ## FFI-Server Responsibilities
-Implement the ConnectivityCheck message-type and corresponding json-schema in the FFI-server, so that the FFI-server can receive and respond to ConnectivityCheck messages from FFI-clients.
+Implement the ConnectivityCheck message-type and its corresponding request and response json-schemas in the FFI-server, so that the FFI-server can receive and respond to ConnectivityCheck messages from FFI-clients.
 
 ## FFI-Client Responsibilities
-Implement the ConnectivityCheck message-type and corresponding json-schema in the FFI-client, so that the FFI-client can send ConnectivityCheck messages to the FFI-server and receive and acknowledge ConnectivityCheck responses as part of the verification of the onboarding process.
+Implement the ConnectivityCheck message-type and its corresponding request and response json-schemas in the FFI-client, so that the FFI-client can send ConnectivityCheck messages to the FFI-server and receive and acknowledge ConnectivityCheck responses as part of the verification of the onboarding process.
 
 ## ConnectivityCheck Step-by-Step
 1) The newly onboarded FFI-client POST a ConnectivityCheck message with message-version to the `/requests` endpoint
@@ -26,7 +25,7 @@ Implement the ConnectivityCheck message-type and corresponding json-schema in th
 3) Instead of sending the message internally to the processing services within the bank, a ConnectivityCheck response message is automatically created and saved
 4) The FFI-client will call the `/responses` endpoint and there info about the ConnectivityCheck response message will be returned including the responseId
 5) The ResponseId is used to fetch the automatically created ConnectivityCheck response message 
-6) The FFI-client will verify the response with json schema
+6) The FFI-client will verify the response with the ConnectivityCheck response json schema
 7) The FFI-client will POST an acknowledgement
 8) The FFI-server will delete the generated ConnectivityCheck response message  
 9) Celebration is in place, since the connectivity for the newly onboarded FFI-client was successful! :-)  
@@ -36,6 +35,7 @@ Schema access to the **ConnectivityCheck** message-type including examples and c
 
 **Message-type name:** ConnectivityCheck
 
+The ConnectivityCheck message-type is defined by one request schema and one response schema.
+
 ## Federation-Specific Parameters
 This convention does not have any federation-specific parameters.
-

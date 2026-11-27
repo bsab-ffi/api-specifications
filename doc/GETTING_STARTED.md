@@ -6,7 +6,7 @@ This guide explains how to use the FFI APIs depending on your role in the infras
 - The **Core API** – Send, receive, and acknowledge messages  
 - The **Conventions** – Ensure consistency, validation, security and compliance (see [Required Conventions](#required-conventions))
 
-All usage is governed by BSAB. See [LICENSE.md](./LICENSE.md) for terms.
+All usage is governed by BSAB. See [LICENSE.md](../LICENSE.md) for terms.
 
 ---
 
@@ -26,8 +26,9 @@ Depending on the federation, an entity may need to implement **both roles**.
 As a Requestor, your system must:  
 1. Retrieve the contract  
 2. Submit a request  
-3. Poll for the corresponding response  
-4. Acknowledge receipt
+3. Poll for the corresponding response
+4. Retrieve the response   
+5. Acknowledge response
 
 See [The Happy Flow – Request to Response Acknowledgment](#the-happy-flow--request-to-response-acknowledgment) for step-by-step details including headers, payloads, and conventions.
 
@@ -49,22 +50,24 @@ See [Required Conventions](#required-conventions) for responsibilities on schema
 
 The `<core-api-major-version>` and `<contract-api-major-version>` parts in the URLs are **placeholders** for the actual **major versions** of each respective API.  
 
-Each federation or provider is responsible for exposing the correct version(s), according to the [Versioning Convention](./conventions/handling-parallel-major-versions.md).
+The major version is exposed in the runtime path as `/core/vN` or `/contract/vN`, where `N` identifies a technically incompatible version of the respective API. An FFI release does not introduce a separate runtime version identifier. Each federation must establish any rules for transitioning between API major versions or FFI releases and communicate them to its participants.
 
 ---
 
 ## Required Conventions
 
-| Area                | Convention |
-|---------------------|------------|
-| Security & Auth     | [handling-api-security.md](./conventions/handling-api-security.md) |
-| Bilateral contracts | [handling-bilateral-contracts.md](./conventions/handling-bilateral-contracts.md) |
-| Message exchange    | [handling-timestamps-and-lifecycle-events.md](./conventions/handling-timestamps-and-lifecycle-events.md) |
-| Schema validation   | [handling-schema-validation.md](./conventions/handling-schema-validation.md) |
-| Versioning rules    | [handling-parallel-major-versions.md](./conventions/handling-parallel-major-versions.md) |
-| Polling & retry     | [handling-response-polling.md](./conventions/handling-response-polling.md) |
-| Compression         | [handling-compression-and-large-responses.md](./conventions/handling-compression-and-large-responses.md) |
-| Connectivity check. | [handling-connectivity-check.md](./conventions/handling-connectivity-check.md) |
+| Area                   | Convention |
+|------------------------|------------|
+| Security & Auth        | [handling-api-security.md](../convention/handling-api-security.md) |
+| Bilateral contracts    | [handling-bilateral-contracts.md](../convention/handling-bilateral-contracts.md) |
+| Entity relationships   | [handling-entity-relationships.md](../convention/handling-entity-relationships.md) |
+| Message exchange       | [handling-timestamps-and-lifecycle-events.md](../convention/handling-timestamps-and-lifecycle-events.md) |
+| Schema validation      | [handling-schema-validation.md](../convention/handling-schema-validation.md) |
+| Technical traceability | [handling-technical-traceability.md](../convention/handling-technical-traceability.md) |
+| Polling & retry        | [handling-response-polling.md](../convention/handling-response-polling.md) |
+| Runtime errors         | [handling-runtime-errors.md](../convention/handling-runtime-errors.md) |
+| Compression            | [handling-compression-and-large-responses.md](../convention/handling-compression-and-large-responses.md) |
+| Connectivity check     | [handling-connectivity-check.md](../convention/handling-connectivity-check.md) |
 
 ---
 
@@ -106,54 +109,59 @@ sequenceDiagram
 
 ### POST /requests – Send a Request
 
-- Requires: `X-FFI-MessageType`, `X-FFI-MessageTypeSchemaVersion`, `X-FFI-ClientId`  
+- Requires: `X-FFI-MessageType`, `X-FFI-MessageTypeVersion`, `X-FFI-ClientId`
+- Recommended header: `X-FFI-TraceId` for technical observability; when included, the server should return the same value in the corresponding response
 - Auth: OAuth2 access token   
-- Body: JSON or XML payload matching the declared schema  
-- Response: `202 Accepted` with tracking headers
+- Body: JSON or XML payload matching the schema derived from the declared message type and message type version
+- Response: `202 Accepted` with tracking headers and, when returned, the same `X-FFI-TraceId`
 
-See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
+See: [Schema Validation Convention](../convention/handling-schema-validation.md)
 
 ---
 
 ### GET /responses – Poll for Responses
 
 - Requires: `X-FFI-ClientId`  
+- Recommended header: `X-FFI-TraceId` for technical observability; when included, the server should return the same value in the corresponding response
 - Auth: OAuth2 access token   
 - Response: List of available responseIds with metadata  
 - Constrained by polling rules
 
-See: [Polling Convention](./conventions/handling-response-polling.md)
+See: [Polling Convention](../convention/handling-response-polling.md)
 
 ---
 
 ### GET /responses/{responseId} – Retrieve the Response
 
 - Requires: `X-FFI-ClientId`  
+- Recommended header: `X-FFI-TraceId` for technical observability; when included, the server should return the same value in the corresponding response
 - Auth: OAuth2 access token   
 - Optional header: `Accept-Encoding: gzip`  
-- Response schema depends on `X-FFI-ProcessingResult`
-    - If `SUCCESS`, the payload conforms to the *success schema* for the message type.
-    - If `ERROR`, the payload conforms to the *error schema* for that message type.
+- Response body depends on `X-FFI-ProcessingResult`
+    - If `SUCCESS`, the payload conforms to the response schema associated with the message type and message type version for the exchange.
+    - If `ERROR`, the payload is an `ErrorPayload` in `application/json`.
 
-See: [Schema Validation Convention](./conventions/handling-schema-validation.md)
+See: [Schema Validation Convention](../convention/handling-schema-validation.md)
 
 ---
 
 ### POST /responses/{responseId}/acknowledge – Confirm Receipt
 
-- Header: `X-FFI-AcknowledgeStatus: SUCCEEDED | FAILED`, `X-FFI-ClientId`    
+- Header: `X-FFI-ProcessingResult: SUCCESS | ERROR`, `X-FFI-ClientId`
+- Recommended header: `X-FFI-TraceId` for technical observability; when included, the server should return the same value in the corresponding response
 - Auth: OAuth2 access token   
+- Request body: omitted for `SUCCESS`, required as `ErrorPayload` for `ERROR`
 - Marks message and request as completed and no longer retrievable
 
-See: [Timestamps and Lifecycle Events Convention](./conventions/handling-timestamps-and-lifecycle-events.md)
+See: [Timestamps and Lifecycle Events Convention](../convention/handling-timestamps-and-lifecycle-events.md)
 
 ---
 
 ## Implementation Guidance
 
 - Use the `ffi-core.yaml` and `ffi-contract.yaml` OpenAPI files  
-- Follow conventions under `/conventions/`  
-- Implement security according to [handling-api-security.md](./conventions/handling-api-security.md)  
+- Follow conventions under `/convention/`  
+- Implement security according to [handling-api-security.md](../convention/handling-api-security.md)  
 - Monitor releases and version updates
 
 ---

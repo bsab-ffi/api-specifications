@@ -1,6 +1,6 @@
 # FFI API Specifications
 
-This repository contains the public, read-only specifications for the Financial Flow Infrastructure (FFI) APIs governed by BSAB.
+This repository contains the specifications for the Financial Flow Infrastructure (FFI) APIs governed by BSAB.
 
 It includes:
 
@@ -10,11 +10,10 @@ It includes:
 
 ## Folder Structure
 
-- `core/` – Contains the OpenAPI specification for the Core API (`ffi-core.yaml`)
-- `contract/` – Contains the OpenAPI specification for the Contract API (`ffi-contract.yaml`)
-- `conventions/` – Contains shared conventions such as naming, structures, and common rules
-- `configurations/` – Contains federation-specific configuration values used by the conventions
-- `schemas/` - Contains common message-type-specific schema definitions
+- `api/` – Contains the OpenAPI specifications for the Core API (`ffi-core.yaml`) and Contract API (`ffi-contract.yaml`)
+- `convention/` – Contains shared conventions such as naming, structures, and common rules
+- `configuration/` – Contains federation-specific configuration values used by the conventions
+- `schema/` - Contains common message-type-specific schema definitions
 
 ## Licensing & Usage
 
@@ -33,16 +32,16 @@ See [CHANGELOG.md](./CHANGELOG.md) for details.
 
 To understand how to use the FFI APIs, including the correct order of calls, roles (Client vs Respondent), and conventions to follow:
 
-See [GETTING_STARTED.md](./GETTING_STARTED.md) for details.
+See [GETTING_STARTED.md](./doc/GETTING_STARTED.md) for details.
 
 ## References
 
 Some FFI API conventions rely on federation-specific configuration values. These are stored in:
 
-- [`/configurations/default.yaml`](./configurations/default.yaml) – Default parameters used unless overridden by a federation
+- [`/configuration/default.yaml`](./configuration/default.yaml) – Default parameters used unless overridden by a federation
 - Convention documents will refer to these values where applicable (e.g. polling intervals, transition periods)
 
-See [Federation Configurations](./configurations/) for format, examples, and interpretation guidelines.
+See [Federation Configurations](./configuration/) for format, examples, and interpretation guidelines.
 
 ## Contact
 

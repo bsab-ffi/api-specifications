@@ -1,8 +1,0 @@
-schemaDistributionMechanism: "email"
-pollingInterval: "PT5M"
-maximumResponseSizeThreshold: 2048
-transitionPeriod: "P90D"
-centralizedTestingEnvironment: false
-federativeSchemaTransitionPeriod: "P12M"
-bilateralTransitionPeriod: "P12M"
-completionGracePeriod: "P10D"

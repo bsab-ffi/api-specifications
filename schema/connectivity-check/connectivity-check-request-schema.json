@@ -26,21 +26,11 @@
     "connectivityCheckTimestamp": {
       "type": "string",
       "title": "Connectivity Check Timestamp",
-      "description": "The timestamp when the connectivity check request was initiated, in ISO 8601 format.",
+      "description": "Must be compliant with the date-time format defined in RFC 3339.",
       "format": "date-time",
       "examples": [
         "2025-02-18T14:30:00Z"
       ]
-    },
-    "connectivityResponseType": {
-      "title": "Connectivity Response Type",
-      "description": "Optionally, used to control the Connectivity Response Type. Is by default SUCCESS. If set to ERROR, the receiver should respond with an error response message according to the error schema.",
-      "type": "string",
-      "enum": [
-        "SUCCESS",
-        "ERROR"
-      ],
-      "default": "SUCCESS"
     }
   },
   "required": [

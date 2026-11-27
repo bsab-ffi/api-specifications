@@ -8,16 +8,16 @@ The file `default.yaml` defines baseline values that apply unless a specific fed
 
 All values are defined as key-value pairs in YAML format. Parameters follow these conventions:
 
-* **Durations** (e.g. `pollingInterval`, `transitionPeriod`) use the [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations):
+* **Durations** (e.g. `pollingInterval`, `completionGracePeriod`, `responseTimeout`) use the [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations):
 
   * `PT5M` = 5 minutes
   * `P30D` = 30 days
 
 * **Sizes** (e.g. `maximumResponseSizeThreshold`) are expressed as plain integers and assumed to be in **bytes**.
 
-* **Booleans** (e.g. `centralizedTestingEnvironment`) use standard YAML `true` or `false`.
+* **Counts** (e.g. `retryLimit`, `circuitBreakerThreshold`) are expressed as plain integers.
 
-* **Strings** (e.g. `schemaDistributionMechanism`) contain a free-text identifier for the distribution method (e.g. `email`, `github`, `custom`).
+* **Strings** (e.g. `schemaDistributionMechanism`, `backoffStrategy`) contain a free-text identifier for the distribution method or selected policy (e.g. `email`, `github`, `custom`, `exponential`).
 
   * The value `custom` indicates that a federation uses its own tailored distribution approach, which may include internal tooling, secured APIs, or other mechanisms not listed in the defaults.
 
@@ -26,7 +26,7 @@ All values are defined as key-value pairs in YAML format. Parameters follow thes
 The default configuration:
 
 * Acts as a fallback where no federation-specific values are defined.
-* Supports conventions such as polling, schema validation, and version transition.
+* Supports conventions such as polling, schema validation, version transition, and runtime retry/backoff handling.
 * Ensures consistent interpretation and onboarding across implementations.
 
 ## Customization

@@ -37,26 +37,12 @@ By following this section of the FFI API Conventions, we ensure that all partici
 If an API request results in a response exceeding **[[Maximum Response Size Threshold]](#federation-specific-parameters)** and compression is not accepted by the client:
 
 - The server will return an HTTP **413 Payload Too Large** response.
-- The response body will include an error message in the following format:
-  
-  ```json
-  {
-    "type": "about:blank",
-    "title": "Payload too large",
-    "status": 413,
-    "detail": "Response payload exceeds 2kB. Enable gzip compression by adding 'Accept-Encoding: gzip' to your request headers."
-  }
-  ```
+- No `ErrorPayload` response body is defined for this status.
 
 ## Documentation and Communication
 
 - API consumers should review the FFI API documentation and ensure their clients can handle gzip-compressed responses.
 - API implementation teams must document any changes related to compression and large response handling in release notes.
-
-## Testing and Validation
-
-- Clients should test their ability to receive and process gzip-compressed responses before moving to production.
-- The FFI Core API provides a sandbox environment where clients can validate their response handling under various payload size conditions.
 
 ## Federation-Specific Parameters
 
@@ -65,4 +51,3 @@ Certain parameters in this document are defined at the **federation level** and 
 - **Maximum Response Size Threshold:** The threshold above which responses require compression.
 
 For details on these parameters, refer to the **FFI Federation Configuration Document**.
-
